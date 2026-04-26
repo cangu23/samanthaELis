@@ -1,22 +1,40 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: InfoQuest - Plataforma de Competencia de Conocimientos de Informatica
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: profiles
+    description: User profile operations
+  - name: modules
+    description: Educational module operations
+  - name: levels
+    description: Level operations
+  - name: challenges
+    description: Challenge operations
+  - name: results
+    description: Result operations
+  - name: ranking
+    description: Ranking operations
+  - name: inbox
+    description: Inbox and notifications
+  - name: feedback
+    description: Docente feedback
+  - name: saved-attempts
+    description: Saved attempt progress
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +42,617 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: registerUser
+      tags: [auth]
+      summary: Register a new user (docente or estudiante)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      tags: [auth]
+      summary: Logout current user
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /modules:
+    get:
+      operationId: getModules
+      tags: [modules]
+      summary: List all modules
+      responses:
+        "200":
+          description: List of modules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Module"
+
+  /modules/{moduleId}:
+    get:
+      operationId: getModule
+      tags: [modules]
+      summary: Get a module by ID
+      parameters:
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Module
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Module"
+
+  /modules/{moduleId}/levels:
+    get:
+      operationId: getLevelsByModule
+      tags: [levels]
+      summary: Get levels for a module
+      parameters:
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of levels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Level"
+
+  /modules/{moduleId}/challenges:
+    get:
+      operationId: getChallengesByModule
+      tags: [challenges]
+      summary: Get challenges for a module
+      parameters:
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of challenges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Challenge"
+
+  /challenges:
+    get:
+      operationId: getChallenges
+      tags: [challenges]
+      summary: List all challenges
+      responses:
+        "200":
+          description: List of challenges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Challenge"
+
+  /challenges/{challengeId}:
+    get:
+      operationId: getChallenge
+      tags: [challenges]
+      summary: Get a challenge with its questions
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Challenge with questions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChallengeWithQuestions"
+
+  /challenges/custom:
+    get:
+      operationId: getCustomChallenges
+      tags: [challenges]
+      summary: List custom challenges created by docentes
+      responses:
+        "200":
+          description: List of custom challenges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomChallenge"
+    post:
+      operationId: createCustomChallenge
+      tags: [challenges]
+      summary: Create a new custom challenge (docente only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomChallengeBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomChallenge"
+
+  /challenges/custom/{challengeId}:
+    get:
+      operationId: getCustomChallenge
+      tags: [challenges]
+      summary: Get a custom challenge with questions
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Custom challenge
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChallengeWithQuestions"
+    put:
+      operationId: updateCustomChallenge
+      tags: [challenges]
+      summary: Update a custom challenge
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomChallengeBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomChallenge"
+    delete:
+      operationId: deleteCustomChallenge
+      tags: [challenges]
+      summary: Delete a custom challenge
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /results:
+    post:
+      operationId: submitResult
+      tags: [results]
+      summary: Submit a challenge result
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitResultBody"
+      responses:
+        "201":
+          description: Result submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Result"
+
+  /results/my:
+    get:
+      operationId: getMyResults
+      tags: [results]
+      summary: Get current user's results
+      responses:
+        "200":
+          description: List of results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Result"
+
+  /results/stats:
+    get:
+      operationId: getMyStats
+      tags: [results]
+      summary: Get current user's stats summary
+      responses:
+        "200":
+          description: Stats summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsSummary"
+
+  /ranking:
+    get:
+      operationId: getRanking
+      tags: [ranking]
+      summary: Get global ranking
+      parameters:
+        - name: moduleId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ranking list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RankingEntry"
+
+  /ranking/module/{moduleId}:
+    get:
+      operationId: getRankingByModule
+      tags: [ranking]
+      summary: Get ranking for a specific module
+      parameters:
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Module ranking
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RankingEntry"
+
+  /inbox/alerts:
+    get:
+      operationId: getAlerts
+      tags: [inbox]
+      summary: Get alerts for current user
+      responses:
+        "200":
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+
+  /inbox/alerts/{alertId}/read:
+    put:
+      operationId: markAlertRead
+      tags: [inbox]
+      summary: Mark alert as read
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /inbox/recommendations:
+    get:
+      operationId: getRecommendations
+      tags: [inbox]
+      summary: Get recommendations for current user
+      responses:
+        "200":
+          description: List of recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recommendation"
+
+  /inbox/feedback:
+    get:
+      operationId: getFeedback
+      tags: [inbox]
+      summary: Get feedback messages for current user
+      responses:
+        "200":
+          description: List of feedback
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedbackMessage"
+
+  /inbox/unread-count:
+    get:
+      operationId: getUnreadCount
+      tags: [inbox]
+      summary: Get unread inbox count
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnreadCount"
+
+  /feedback:
+    post:
+      operationId: sendFeedback
+      tags: [feedback]
+      summary: Send feedback to a student (docente only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendFeedbackBody"
+      responses:
+        "201":
+          description: Feedback sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackMessage"
+
+  /feedback/{feedbackId}/read:
+    put:
+      operationId: markFeedbackRead
+      tags: [feedback]
+      summary: Mark feedback as read
+      parameters:
+        - name: feedbackId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /saved-attempts:
+    get:
+      operationId: getSavedAttempts
+      tags: [saved-attempts]
+      summary: Get saved attempts for current user
+      responses:
+        "200":
+          description: List of saved attempts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SavedAttempt"
+    post:
+      operationId: saveAttempt
+      tags: [saved-attempts]
+      summary: Save current attempt progress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveAttemptBody"
+      responses:
+        "200":
+          description: Progress saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedAttempt"
+
+  /saved-attempts/{challengeId}:
+    get:
+      operationId: getSavedAttempt
+      tags: [saved-attempts]
+      summary: Get saved attempt for a specific challenge
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Saved attempt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedAttempt"
+    delete:
+      operationId: deleteSavedAttempt
+      tags: [saved-attempts]
+      summary: Delete saved attempt (after completing challenge)
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /profiles:
+    get:
+      operationId: getProfiles
+      tags: [profiles]
+      summary: Get all profiles (docente only)
+      responses:
+        "200":
+          description: List of profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Profile"
+
+  /profiles/{userId}:
+    get:
+      operationId: getProfile
+      tags: [profiles]
+      summary: Get a user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+
+  /profiles/{userId}/results:
+    get:
+      operationId: getUserResults
+      tags: [profiles]
+      summary: Get results for a user (docente only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Result"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +663,693 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    RegisterBody:
+      type: object
+      properties:
+        nombre:
+          type: string
+        usuario:
+          type: string
+        password:
+          type: string
+        rol:
+          type: string
+          enum: [estudiante, docente]
+        grado_bachillerato:
+          type: integer
+          nullable: true
+      required:
+        - nombre
+        - usuario
+        - password
+        - rol
+
+    LoginBody:
+      type: object
+      properties:
+        usuario:
+          type: string
+        password:
+          type: string
+      required:
+        - usuario
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/Profile"
+        token:
+          type: string
+      required:
+        - user
+        - token
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        usuario:
+          type: string
+        rol:
+          type: string
+          enum: [estudiante, docente]
+        grado_bachillerato:
+          type: integer
+          nullable: true
+        avatar_url:
+          type: string
+          nullable: true
+        puntos_totales:
+          type: integer
+        retos_completados:
+          type: integer
+        racha_dias:
+          type: integer
+        ultimo_acceso:
+          type: string
+          nullable: true
+        creado_en:
+          type: string
+        ultimo_nivel_intento:
+          type: string
+          nullable: true
+        mejor_puntaje_por_modulo:
+          type: object
+          nullable: true
+      required:
+        - id
+        - nombre
+        - usuario
+        - rol
+        - puntos_totales
+        - retos_completados
+        - racha_dias
+        - creado_en
+
+    Module:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        anio_bachillerato:
+          type: integer
+        descripcion:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        icono:
+          type: string
+          nullable: true
+        activo:
+          type: boolean
+        creado_en:
+          type: string
+      required:
+        - id
+        - nombre
+        - anio_bachillerato
+        - activo
+        - creado_en
+
+    Level:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_modulo:
+          type: integer
+        nombre:
+          type: string
+        orden:
+          type: integer
+        descripcion:
+          type: string
+          nullable: true
+        puntos_por_reto:
+          type: integer
+        activo:
+          type: boolean
+      required:
+        - id
+        - id_modulo
+        - nombre
+        - orden
+        - puntos_por_reto
+        - activo
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_modulo:
+          type: integer
+        id_nivel:
+          type: integer
+        tipo:
+          type: string
+          enum: [multiple_choice, true_false, code_completion, drag_drop]
+        texto:
+          type: string
+        opciones:
+          type: array
+          items:
+            type: string
+          nullable: true
+        respuesta_correcta:
+          type: string
+        explicacion:
+          type: string
+          nullable: true
+        dificultad:
+          type: string
+          enum: [facil, medio, dificil]
+        puntos:
+          type: integer
+        activa:
+          type: boolean
+      required:
+        - id
+        - id_modulo
+        - id_nivel
+        - tipo
+        - texto
+        - respuesta_correcta
+        - dificultad
+        - puntos
+        - activa
+
+    Challenge:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        descripcion:
+          type: string
+          nullable: true
+        tipo_juego:
+          type: string
+          enum: [quiz, code_challenge, security_puzzle, drag_drop, speed_race]
+        id_modulo:
+          type: integer
+        id_nivel:
+          type: integer
+        tiempo_limite:
+          type: integer
+        puntos_maximos:
+          type: integer
+        numero_preguntas:
+          type: integer
+        activo:
+          type: boolean
+        creado_en:
+          type: string
+        modulo:
+          $ref: "#/components/schemas/Module"
+          nullable: true
+        nivel:
+          $ref: "#/components/schemas/Level"
+          nullable: true
+      required:
+        - id
+        - nombre
+        - tipo_juego
+        - id_modulo
+        - id_nivel
+        - tiempo_limite
+        - puntos_maximos
+        - numero_preguntas
+        - activo
+        - creado_en
+
+    ChallengeWithQuestions:
+      allOf:
+        - $ref: "#/components/schemas/Challenge"
+        - type: object
+          properties:
+            preguntas:
+              type: array
+              items:
+                $ref: "#/components/schemas/Question"
+          required:
+            - preguntas
+
+    CustomChallenge:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_docente:
+          type: integer
+        nombre:
+          type: string
+        descripcion:
+          type: string
+          nullable: true
+        tipo_juego:
+          type: string
+          enum: [quiz, code_challenge, security_puzzle, drag_drop, speed_race]
+        id_modulo:
+          type: integer
+        id_nivel:
+          type: integer
+        puntos_maximos:
+          type: integer
+        numero_preguntas:
+          type: integer
+        tiempo_limite:
+          type: integer
+        activo:
+          type: boolean
+        creado_en:
+          type: string
+        docente:
+          $ref: "#/components/schemas/Profile"
+          nullable: true
+        modulo:
+          $ref: "#/components/schemas/Module"
+          nullable: true
+        nivel:
+          $ref: "#/components/schemas/Level"
+          nullable: true
+      required:
+        - id
+        - id_docente
+        - nombre
+        - tipo_juego
+        - id_modulo
+        - id_nivel
+        - puntos_maximos
+        - numero_preguntas
+        - tiempo_limite
+        - activo
+        - creado_en
+
+    CreateCustomChallengeBody:
+      type: object
+      properties:
+        nombre:
+          type: string
+        descripcion:
+          type: string
+          nullable: true
+        tipo_juego:
+          type: string
+          enum: [quiz, code_challenge, security_puzzle, drag_drop, speed_race]
+        id_modulo:
+          type: integer
+        id_nivel:
+          type: integer
+        puntos_maximos:
+          type: integer
+        numero_preguntas:
+          type: integer
+        tiempo_limite:
+          type: integer
+        preguntas:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateQuestionBody"
+      required:
+        - nombre
+        - tipo_juego
+        - id_modulo
+        - id_nivel
+        - puntos_maximos
+        - numero_preguntas
+        - tiempo_limite
+
+    CreateQuestionBody:
+      type: object
+      properties:
+        tipo:
+          type: string
+          enum: [multiple_choice, true_false, code_completion, drag_drop]
+        texto:
+          type: string
+        opciones:
+          type: array
+          items:
+            type: string
+          nullable: true
+        respuesta_correcta:
+          type: string
+        explicacion:
+          type: string
+          nullable: true
+        dificultad:
+          type: string
+          enum: [facil, medio, dificil]
+        puntos:
+          type: integer
+      required:
+        - tipo
+        - texto
+        - respuesta_correcta
+        - dificultad
+        - puntos
+
+    SubmitResultBody:
+      type: object
+      properties:
+        id_reto:
+          type: integer
+        is_custom:
+          type: boolean
+        puntuacion:
+          type: integer
+        puntos_maximos:
+          type: integer
+        precision:
+          type: number
+        tiempo_total:
+          type: integer
+        detalles:
+          type: object
+          nullable: true
+        completado:
+          type: boolean
+        tiempo_respuesta:
+          type: integer
+        respuestas_correctas:
+          type: integer
+        respuestas_incorrectas:
+          type: integer
+      required:
+        - id_reto
+        - puntuacion
+        - puntos_maximos
+        - precision
+        - tiempo_total
+        - completado
+        - tiempo_respuesta
+        - respuestas_correctas
+        - respuestas_incorrectas
+
+    Result:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_usuario:
+          type: integer
+        id_reto:
+          type: integer
+        is_custom:
+          type: boolean
+        puntuacion:
+          type: integer
+        puntos_maximos:
+          type: integer
+        precision:
+          type: number
+        tiempo_total:
+          type: integer
+        detalles:
+          type: object
+          nullable: true
+        completado:
+          type: boolean
+        fecha:
+          type: string
+        tiempo_respuesta:
+          type: integer
+        respuestas_correctas:
+          type: integer
+        respuestas_incorrectas:
+          type: integer
+        usuario:
+          $ref: "#/components/schemas/Profile"
+          nullable: true
+        reto:
+          $ref: "#/components/schemas/Challenge"
+          nullable: true
+      required:
+        - id
+        - id_usuario
+        - id_reto
+        - puntuacion
+        - puntos_maximos
+        - precision
+        - tiempo_total
+        - completado
+        - fecha
+        - tiempo_respuesta
+        - respuestas_correctas
+        - respuestas_incorrectas
+
+    StatsSummary:
+      type: object
+      properties:
+        puntos_totales:
+          type: integer
+        retos_completados:
+          type: integer
+        precision_promedio:
+          type: number
+        tiempo_promedio:
+          type: integer
+        racha_dias:
+          type: integer
+        mejor_puntaje:
+          type: integer
+        posicion_ranking:
+          type: integer
+      required:
+        - puntos_totales
+        - retos_completados
+        - precision_promedio
+        - tiempo_promedio
+        - racha_dias
+        - mejor_puntaje
+        - posicion_ranking
+
+    RankingEntry:
+      type: object
+      properties:
+        posicion:
+          type: integer
+        usuario:
+          $ref: "#/components/schemas/Profile"
+        puntos_totales:
+          type: integer
+        retos_completados:
+          type: integer
+        precision_promedio:
+          type: number
+        tiempo_promedio:
+          type: integer
+        respuestas_correctas:
+          type: integer
+        respuestas_incorrectas:
+          type: integer
+      required:
+        - posicion
+        - usuario
+        - puntos_totales
+        - retos_completados
+        - precision_promedio
+        - tiempo_promedio
+        - respuestas_correctas
+        - respuestas_incorrectas
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_usuario:
+          type: integer
+        descripcion:
+          type: string
+        tipo:
+          type: string
+          enum: [bajo_rendimiento, nivel_completado, logro, sistema]
+        leida:
+          type: boolean
+        fecha:
+          type: string
+      required:
+        - id
+        - id_usuario
+        - descripcion
+        - tipo
+        - leida
+        - fecha
+
+    Recommendation:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_usuario:
+          type: integer
+        descripcion:
+          type: string
+        motivo:
+          type: string
+          nullable: true
+        tipo:
+          type: string
+        leida:
+          type: boolean
+        fecha:
+          type: string
+      required:
+        - id
+        - id_usuario
+        - descripcion
+        - tipo
+        - leida
+        - fecha
+
+    FeedbackMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_docente:
+          type: integer
+        id_estudiante:
+          type: integer
+        contenido:
+          type: string
+        tipo:
+          type: string
+          enum: [mejora, felicitacion, advertencia, general]
+        leido:
+          type: boolean
+        creado_en:
+          type: string
+        docente:
+          $ref: "#/components/schemas/Profile"
+          nullable: true
+      required:
+        - id
+        - id_docente
+        - id_estudiante
+        - contenido
+        - tipo
+        - leido
+        - creado_en
+
+    SendFeedbackBody:
+      type: object
+      properties:
+        id_estudiante:
+          type: integer
+        contenido:
+          type: string
+        tipo:
+          type: string
+          enum: [mejora, felicitacion, advertencia, general]
+      required:
+        - id_estudiante
+        - contenido
+        - tipo
+
+    UnreadCount:
+      type: object
+      properties:
+        alerts:
+          type: integer
+        feedback:
+          type: integer
+        recommendations:
+          type: integer
+        total:
+          type: integer
+      required:
+        - alerts
+        - feedback
+        - recommendations
+        - total
+
+    SavedAttempt:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_usuario:
+          type: integer
+        id_reto:
+          type: integer
+        progreso_json:
+          type: object
+        respuestas_json:
+          type: object
+        pregunta_actual:
+          type: integer
+        puntuacion_parcial:
+          type: integer
+        tiempo_transcurrido:
+          type: integer
+        creado_en:
+          type: string
+        actualizado_en:
+          type: string
+      required:
+        - id
+        - id_usuario
+        - id_reto
+        - progreso_json
+        - respuestas_json
+        - pregunta_actual
+        - puntuacion_parcial
+        - tiempo_transcurrido
+        - creado_en
+        - actualizado_en
+
+    SaveAttemptBody:
+      type: object
+      properties:
+        id_reto:
+          type: integer
+        progreso_json:
+          type: object
+        respuestas_json:
+          type: object
+        pregunta_actual:
+          type: integer
+        puntuacion_parcial:
+          type: integer
+        tiempo_transcurrido:
+          type: integer
+      required:
+        - id_reto
+        - progreso_json
+        - respuestas_json
+        - pregunta_actual
+        - puntuacion_parcial
+        - tiempo_transcurrido

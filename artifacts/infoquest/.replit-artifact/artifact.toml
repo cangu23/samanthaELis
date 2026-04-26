@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "InfoQuest - Plataforma de Conocimientos"
+version = "1.0.0"
+id = "artifacts/infoquest"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21627
+
+[services.development]
+run = "pnpm --filter @workspace/infoquest run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/infoquest", "run", "build" ]
+publicDir = "artifacts/infoquest/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21627"
+BASE_PATH = "/"
