@@ -112,12 +112,12 @@ export function RankingPage() {
             className="pt-8 flex flex-col items-center"
           >
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white text-xl font-bold mb-2">
-              {filteredRanking[1]?.nombre.charAt(0).toUpperCase()}
+              {filteredRanking[1]?.nombre?.charAt(0)?.toUpperCase()}
             </div>
             <div className="text-sm font-semibold text-center truncate w-full px-1">
-              {filteredRanking[1]?.nombre.split(" ")[0]}
+              {filteredRanking[1]?.nombre?.split(" ")[0]}
             </div>
-            <div className="text-xs text-muted-foreground">{filteredRanking[1]?.puntos_totales.toLocaleString()} pts</div>
+            <div className="text-xs text-muted-foreground">{filteredRanking[1]?.puntos_totales?.toLocaleString()} pts</div>
             <div className="mt-2 w-full h-20 bg-gradient-to-t from-gray-400/20 to-transparent rounded-t-xl border border-gray-400/30 flex items-end justify-center pb-2">
               <span className="font-bold font-orbitron text-gray-400 text-2xl">2</span>
             </div>
@@ -133,13 +133,13 @@ export function RankingPage() {
             <div className="relative">
               <Trophy className="w-6 h-6 text-yellow-400 absolute -top-5 left-1/2 -translate-x-1/2" />
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white text-2xl font-bold mb-2 border-2 border-yellow-400">
-                {filteredRanking[0]?.nombre.charAt(0).toUpperCase()}
+                {filteredRanking[0]?.nombre?.charAt(0)?.toUpperCase()}
               </div>
             </div>
             <div className="text-sm font-semibold text-center truncate w-full px-1">
-              {filteredRanking[0]?.nombre.split(" ")[0]}
+              {filteredRanking[0]?.nombre?.split(" ")[0]}
             </div>
-            <div className="text-xs text-yellow-400 font-bold">{filteredRanking[0]?.puntos_totales.toLocaleString()} pts</div>
+            <div className="text-xs text-yellow-400 font-bold">{filteredRanking[0]?.puntos_totales?.toLocaleString()} pts</div>
             <div className="mt-2 w-full h-32 bg-gradient-to-t from-yellow-400/20 to-transparent rounded-t-xl border border-yellow-400/40 flex items-end justify-center pb-2">
               <span className="font-bold font-orbitron text-yellow-400 text-3xl">1</span>
             </div>
@@ -153,12 +153,12 @@ export function RankingPage() {
             className="pt-12 flex flex-col items-center"
           >
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-600 to-orange-800 flex items-center justify-center text-white text-lg font-bold mb-2">
-              {filteredRanking[2]?.nombre.charAt(0).toUpperCase()}
+              {filteredRanking[2]?.nombre?.charAt(0)?.toUpperCase()}
             </div>
             <div className="text-sm font-semibold text-center truncate w-full px-1">
-              {filteredRanking[2]?.nombre.split(" ")[0]}
+              {filteredRanking[2]?.nombre?.split(" ")[0]}
             </div>
-            <div className="text-xs text-muted-foreground">{filteredRanking[2]?.puntos_totales.toLocaleString()} pts</div>
+            <div className="text-xs text-muted-foreground">{filteredRanking[2]?.puntos_totales?.toLocaleString()} pts</div>
             <div className="mt-2 w-full h-14 bg-gradient-to-t from-orange-600/20 to-transparent rounded-t-xl border border-orange-600/30 flex items-end justify-center pb-2">
               <span className="font-bold font-orbitron text-orange-600 text-2xl">3</span>
             </div>

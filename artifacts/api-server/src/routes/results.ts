@@ -22,7 +22,8 @@ router.post("/results", requireAuth, async (req: AuthRequest, res) => {
     // Soporte para ambos formatos de datos del frontend
     const id_reto = body.id_reto;
     const is_custom = body.is_custom || false;
-    const puntuacion = body.puntaje !== undefined ? body.puntaje : (body.puntuacion || 0);
+    const puntuacion =
+      body.puntaje !== undefined ? body.puntaje : body.puntuacion || 0;
     const puntos_maximos_val = body.puntos_maximos || 100;
     const respuestas_correctas = body.respuestas_correctas || 0;
     const total_preguntas = body.total_preguntas || 1;
@@ -30,10 +31,14 @@ router.post("/results", requireAuth, async (req: AuthRequest, res) => {
     const precision_val = respuestas_correctas / Math.max(total_preguntas, 1);
     const tiempo_total_val = body.tiempo_empleado || body.tiempo_total || 0;
     const completado = body.completado !== false;
-    const detalles = body.respuestas ? JSON.stringify(body.respuestas) : (body.detalles || null);
+    const detalles = body.respuestas
+      ? JSON.stringify(body.respuestas)
+      : body.detalles || null;
 
     if (!id_reto) {
-      res.status(400).json({ error: "validation_error", message: "id_reto es requerido" });
+      res
+        .status(400)
+        .json({ error: "validation_error", message: "id_reto es requerido" });
       return;
     }
 
@@ -61,16 +66,16 @@ router.post("/results", requireAuth, async (req: AuthRequest, res) => {
       await db
         .update(perfilesTable)
         .set({
-          puntos_totales: (await db
+          puntos_totales: await db
             .select({ pts: sum(resultadosTable.puntuacion) })
             .from(resultadosTable)
             .where(eq(resultadosTable.id_usuario, req.user!.id))
-            .then((r) => Number(r[0]?.pts || 0))),
-          retos_completados: (await db
+            .then((r) => Number(r[0]?.pts || 0)),
+          retos_completados: await db
             .select({ cnt: count() })
             .from(resultadosTable)
             .where(eq(resultadosTable.id_usuario, req.user!.id))
-            .then((r) => Number(r[0]?.cnt || 0))),
+            .then((r) => Number(r[0]?.cnt || 0)),
         })
         .where(eq(perfilesTable.id, req.user!.id));
     }
@@ -114,11 +119,14 @@ router.get("/results/my", requireAuth, async (req: AuthRequest, res) => {
       resultados.map(async (r) => {
         let reto = null;
         if (!r.is_custom) {
-          const [retoData] = await db.select().from(retosTable).where(eq(retosTable.id, r.id_reto));
+          const [retoData] = await db
+            .select()
+            .from(retosTable)
+            .where(eq(retosTable.id, r.id_reto));
           reto = retoData || null;
         }
         return { ...r, reto };
-      })
+      }),
     );
 
     res.json(resultadosConInfo);
@@ -129,48 +137,56 @@ router.get("/results/my", requireAuth, async (req: AuthRequest, res) => {
 });
 
 // GET /results/my-history - Historial de retos del usuario actual (alias de /results/my)
-router.get("/results/my-history", requireAuth, async (req: AuthRequest, res) => {
-  try {
-    const resultados = await db
-      .select()
-      .from(resultadosTable)
-      .where(eq(resultadosTable.id_usuario, req.user!.id))
-      .orderBy(desc(resultadosTable.fecha));
+router.get(
+  "/results/my-history",
+  requireAuth,
+  async (req: AuthRequest, res) => {
+    try {
+      const resultados = await db
+        .select()
+        .from(resultadosTable)
+        .where(eq(resultadosTable.id_usuario, req.user!.id))
+        .orderBy(desc(resultadosTable.fecha));
 
-    // Agrega informacion del reto a cada resultado
-    const resultadosConInfo = await Promise.all(
-      resultados.map(async (r) => {
-        let retoNombre = "Reto desconocido";
-        let tipoJuego = "quiz";
-        let puntosMáximos = 100;
-        if (!r.is_custom) {
-          const [retoData] = await db.select().from(retosTable).where(eq(retosTable.id, r.id_reto));
-          if (retoData) {
-            retoNombre = retoData.nombre;
-            tipoJuego = retoData.tipo_juego;
-            puntosMáximos = retoData.puntos_maximos;
+      // Agrega informacion del reto a cada resultado
+      const resultadosConInfo = await Promise.all(
+        resultados.map(async (r) => {
+          let retoNombre = "Reto desconocido";
+          let tipoJuego = "quiz";
+          let puntosMáximos = 100;
+          if (!r.is_custom) {
+            const [retoData] = await db
+              .select()
+              .from(retosTable)
+              .where(eq(retosTable.id, r.id_reto));
+            if (retoData) {
+              retoNombre = retoData.nombre;
+              tipoJuego = retoData.tipo_juego;
+              puntosMáximos = retoData.puntos_maximos;
+            }
           }
-        }
-        return {
-          id: r.id,
-          nombre_reto: retoNombre,
-          tipo_juego: tipoJuego,
-          puntaje: r.puntuacion,
-          puntos_maximos: r.puntos_maximos || puntosMáximos,
-          respuestas_correctas: r.respuestas_correctas || 0,
-          total_preguntas: (r.respuestas_correctas || 0) + (r.respuestas_incorrectas || 0),
-          completado: r.completado,
-          fecha_completado: r.fecha,
-        };
-      })
-    );
+          return {
+            id: r.id,
+            nombre_reto: retoNombre,
+            tipo_juego: tipoJuego,
+            puntaje: r.puntuacion,
+            puntos_maximos: r.puntos_maximos || puntosMáximos,
+            respuestas_correctas: r.respuestas_correctas || 0,
+            total_preguntas:
+              (r.respuestas_correctas || 0) + (r.respuestas_incorrectas || 0),
+            completado: r.completado,
+            fecha_completado: r.fecha,
+          };
+        }),
+      );
 
-    res.json(resultadosConInfo);
-  } catch (err) {
-    req.log.error({ err }, "Error al obtener historial");
-    res.status(500).json({ error: "server_error", message: "Error interno" });
-  }
-});
+      res.json(resultadosConInfo);
+    } catch (err) {
+      req.log.error({ err }, "Error al obtener historial");
+      res.status(500).json({ error: "server_error", message: "Error interno" });
+    }
+  },
+);
 
 // GET /results/stats - Estadisticas del usuario actual
 router.get("/results/stats", requireAuth, async (req: AuthRequest, res) => {
@@ -213,7 +229,8 @@ router.get("/results/stats", requireAuth, async (req: AuthRequest, res) => {
       .groupBy(resultadosTable.id_usuario)
       .orderBy(desc(sum(resultadosTable.puntuacion)));
 
-    const posicion = todosResultados.findIndex((r) => r.id_usuario === userId) + 1;
+    const posicion =
+      todosResultados.findIndex((r) => r.id_usuario === userId) + 1;
 
     res.json({
       puntos_totales: Number(stats?.puntos_totales || 0),
