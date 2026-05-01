@@ -1,4 +1,4 @@
-// App principal de InfoQuest - Router y layout global
+// App principal de Cerebrito - Router y layout global
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";

@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Al montar el componente, recupera el token guardado y valida la sesion
   useEffect(() => {
-    const savedToken = localStorage.getItem("infoquest_token");
+    const savedToken = localStorage.getItem("cerebrito_token");
     if (savedToken) {
       setToken(savedToken);
       // Configura el getter del token para que todas las peticiones API usen el token
@@ -69,12 +69,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
       } else {
         // Token invalido - limpia la sesion
-        localStorage.removeItem("infoquest_token");
+        localStorage.removeItem("cerebrito_token");
         setToken(null);
         setAuthTokenGetter(null);
       }
     } catch {
-      localStorage.removeItem("infoquest_token");
+      localStorage.removeItem("cerebrito_token");
       setToken(null);
       setAuthTokenGetter(null);
     } finally {
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const data = await response.json();
-    localStorage.setItem("infoquest_token", data.token);
+    localStorage.setItem("cerebrito_token", data.token);
     setAuthTokenGetter(() => data.token);
     setToken(data.token);
     setUser(data.user);
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const data = await response.json();
-    localStorage.setItem("infoquest_token", data.token);
+    localStorage.setItem("cerebrito_token", data.token);
     setAuthTokenGetter(() => data.token);
     setToken(data.token);
     setUser(data.user);
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Cierra la sesion: elimina el token y limpia el estado
   const logout = () => {
-    localStorage.removeItem("infoquest_token");
+    localStorage.removeItem("cerebrito_token");
     setAuthTokenGetter(null);
     setToken(null);
     setUser(null);

@@ -42,7 +42,7 @@ export function RankingPage() {
 
   useEffect(() => {
     fetch("/api/ranking", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("infoquest_token")}` },
+      headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
     })
       .then((r) => r.json())
       .then((data) => {

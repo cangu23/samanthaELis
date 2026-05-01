@@ -15,10 +15,10 @@ paths = [ "/" ]
 localPort = 21627
 
 [services.development]
-run = "pnpm --filter @workspace/infoquest run dev"
+run = "pnpm --filter @workspace/cerebrito run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/infoquest", "run", "build" ]
+build = [ "pnpm", "--filter", "@workspace/cerebrito", "run", "build" ]
 publicDir = "artifacts/infoquest/dist/public"
 serve = "static"
 

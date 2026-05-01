@@ -52,7 +52,7 @@ export function ModulesPage() {
   const [challenges, setChallenges] = useState<Record<number, Reto[]>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const token = localStorage.getItem("infoquest_token");
+  const token = localStorage.getItem("cerebrito_token");
   const headers = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {

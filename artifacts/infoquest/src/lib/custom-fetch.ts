@@ -1,11 +1,11 @@
 // Fetch personalizado que inyecta el token JWT en todas las peticiones a la API
-// El token se almacena en localStorage con la clave infoquest_token
+// El token se almacena en localStorage con la clave cerebrito_token
 export const customFetch = async (
   url: string,
   options: RequestInit = {}
 ): Promise<Response> => {
   // Recupera el token del almacenamiento local
-  const token = localStorage.getItem("infoquest_token");
+  const token = localStorage.getItem("cerebrito_token");
 
   // Construye los headers con el token de autorizacion si existe
   const headers: Record<string, string> = {

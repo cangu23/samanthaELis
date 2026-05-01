@@ -37,7 +37,7 @@ interface Pregunta {
 export function CreateChallengePage() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
-  const token = localStorage.getItem("infoquest_token");
+  const token = localStorage.getItem("cerebrito_token");
   const headers = { Authorization: `Bearer ${token}` };
 
   // Datos del reto

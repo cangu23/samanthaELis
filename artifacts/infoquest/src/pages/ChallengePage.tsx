@@ -41,7 +41,7 @@ export function ChallengePage() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const token = localStorage.getItem("infoquest_token");
+  const token = localStorage.getItem("cerebrito_token");
   const headers = { Authorization: `Bearer ${token}` };
 
   const [reto, setReto] = useState<Reto | null>(null);

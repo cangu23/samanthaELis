@@ -42,7 +42,7 @@ export function ProfilePage() {
   const { user } = useAuth();
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("infoquest_token");
+  const token = localStorage.getItem("cerebrito_token");
 
   useEffect(() => {
     fetch("/api/results/my-history", {

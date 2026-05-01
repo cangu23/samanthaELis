@@ -1,4 +1,4 @@
-// Mascota animada de InfoQuest - Robot con personalidad gamer
+// Mascota animada de Cerebrito - Robot con personalidad gamer
 // Animaciones CSS puras: flotacion, parpadeo de ojos, saludo con brazo
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";

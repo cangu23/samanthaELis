@@ -7,7 +7,7 @@ import { perfilesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 // Clave secreta para firmar los JWT - en produccion debe ser un secreto seguro
-const JWT_SECRET = process.env.SESSION_SECRET || "infoquest_secret_2024";
+const JWT_SECRET = process.env.SESSION_SECRET || "cerebrito_secret_2024";
 
 // Payload que va dentro del token JWT
 export interface JwtPayload {

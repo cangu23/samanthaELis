@@ -87,7 +87,7 @@ function StudentDashboard() {
   useEffect(() => {
     if (!user?.grado_bachillerato) return;
     fetch(`/api/modules?anio=${user.grado_bachillerato}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("infoquest_token")}` },
+      headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
     })
       .then((r) => r.json())
       .then((data) => {
@@ -96,13 +96,13 @@ function StudentDashboard() {
           setModule(mod);
           // Carga niveles
           fetch(`/api/modules/${mod.id}/levels`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("infoquest_token")}` },
+            headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
           })
             .then((r) => r.json())
             .then((lvls) => setLevels(Array.isArray(lvls) ? lvls : []));
           // Carga retos
           fetch(`/api/challenges?id_modulo=${mod.id}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("infoquest_token")}` },
+            headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
           })
             .then((r) => r.json())
             .then((ch) => setChallenges(Array.isArray(ch) ? ch : []));
@@ -112,7 +112,7 @@ function StudentDashboard() {
 
     // Carga intentos guardados
     fetch("/api/saved-attempts", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("infoquest_token")}` },
+      headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
     })
       .then((r) => r.json())
       .then((sa) => setSavedAttempts(Array.isArray(sa) ? sa : []))
@@ -345,10 +345,10 @@ function TeacherDashboard() {
   useEffect(() => {
     Promise.all([
       fetch("/api/ranking", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("infoquest_token")}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
       }).then((r) => r.json()),
       fetch("/api/challenges", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("infoquest_token")}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
       }).then((r) => r.json()),
     ])
       .then(([ranking, challenges]) => {
