@@ -251,7 +251,7 @@ export function ChallengePage() {
               className="mb-3 text-sm px-3 py-1"
               style={{ backgroundColor: `${color}20`, color, borderColor: `${color}40` }}
             >
-              {reto.tipo_juego.replace("_", " ").toUpperCase()}
+              {(reto.tipo_juego ?? "").replace(/_/g, " ").toUpperCase()}
             </Badge>
             <h1 className="text-2xl font-bold font-orbitron">{reto.nombre}</h1>
             <p className="text-muted-foreground mt-2">{reto.descripcion}</p>

@@ -13,6 +13,7 @@ import { RankingPage } from "@/pages/RankingPage";
 import { InboxPage } from "@/pages/InboxPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { CreateChallengePage } from "@/pages/CreateChallengePage";
+import { JuegosPage } from "@/pages/JuegosPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -144,6 +145,22 @@ function AppRoutes() {
         <ProtectedRoute>
           <AppLayout>
             <ProfilePage />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/juegos">
+        <ProtectedRoute>
+          <AppLayout>
+            <JuegosPage />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/challenges">
+        <ProtectedRoute>
+          <AppLayout>
+            <JuegosPage />
           </AppLayout>
         </ProtectedRoute>
       </Route>

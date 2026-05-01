@@ -23,6 +23,7 @@ import {
   X,
   Zap,
   ChevronDown,
+  Gamepad2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,12 +39,14 @@ export function Navbar() {
   const navLinks = isDocente
     ? [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/challenges", label: "Retos", icon: Zap },
+        { href: "/juegos", label: "Juegos", icon: Gamepad2 },
+        { href: "/modules", label: "Módulos", icon: BookOpen },
         { href: "/ranking", label: "Ranking", icon: Trophy },
         { href: "/inbox", label: "Bandeja", icon: Bell },
       ]
     : [
         { href: "/dashboard", label: "Inicio", icon: LayoutDashboard },
+        { href: "/juegos", label: "Juegos", icon: Gamepad2 },
         { href: "/modules", label: "Módulos", icon: BookOpen },
         { href: "/ranking", label: "Ranking", icon: Trophy },
         { href: "/inbox", label: "Bandeja", icon: Bell },
@@ -63,7 +66,7 @@ export function Navbar() {
                 <Zap className="w-4 h-4 text-primary" />
               </div>
               <span className="font-orbitron text-lg font-bold text-foreground hidden sm:block">
-                Info<span className="text-primary">Quest</span>
+                Cere<span className="text-primary">brito</span>
               </span>
             </motion.div>
           </Link>
