@@ -223,14 +223,14 @@ export function RankingPage() {
                     color: tier.color,
                   }}
                 >
-                  {item.nombre.charAt(0).toUpperCase()}
+                  {item.nombre?.charAt(0)?.toUpperCase() ?? "?"}
                 </div>
 
                 {/* Info usuario */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className={cn("text-sm font-semibold truncate", isMe && "text-primary")}>
-                      {item.nombre}
+                      {item.nombre ?? item.usuario}
                     </span>
                     {isMe && <Badge className="text-xs bg-primary/20 text-primary border-primary/30 py-0">Tu</Badge>}
                   </div>
@@ -247,12 +247,12 @@ export function RankingPage() {
                   <div className="flex items-center gap-1 justify-end" style={{ color: tier.color }}>
                     <Star className="w-3.5 h-3.5" />
                     <span className="font-bold font-orbitron text-sm">
-                      {item.puntos_totales.toLocaleString()}
+                      {(item.puntos_totales ?? 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex items-center gap-1 justify-end mt-0.5 text-xs text-muted-foreground">
                     <Zap className="w-3 h-3" />
-                    <span>{item.retos_completados} retos</span>
+                    <span>{item.retos_completados ?? 0} retos</span>
                   </div>
                 </div>
 

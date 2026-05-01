@@ -53,7 +53,13 @@ router.get("/ranking", requireAuth, async (req, res) => {
 
         return {
           posicion: index + 1,
-          usuario: perfil,
+          usuario_id: perfil.id,
+          nombre: perfil.nombre ?? perfil.usuario,
+          usuario: perfil.usuario,
+          grado_bachillerato: perfil.grado_bachillerato,
+          rol: perfil.rol,
+          avatar_url: perfil.avatar_url,
+          racha_dias: perfil.racha_dias,
           puntos_totales: Number(entry.puntos_totales || 0),
           retos_completados: Number(entry.retos_completados || 0),
           precision_promedio: Number(entry.precision_promedio || 0),
@@ -125,7 +131,13 @@ router.get("/ranking/module/:moduleId", requireAuth, async (req, res) => {
 
         return {
           posicion: index + 1,
-          usuario: perfil,
+          usuario_id: perfil.id,
+          nombre: perfil.nombre ?? perfil.usuario,
+          usuario: perfil.usuario,
+          grado_bachillerato: perfil.grado_bachillerato,
+          rol: perfil.rol,
+          avatar_url: perfil.avatar_url,
+          racha_dias: perfil.racha_dias,
           puntos_totales: Number(entry.puntos_totales || 0),
           retos_completados: Number(entry.retos_completados || 0),
           precision_promedio: Number(entry.precision_promedio || 0),
