@@ -1,8 +1,8 @@
 kind = "web"
 previewPath = "/"
-title = "InfoQuest - Plataforma de Conocimientos"
+title = "Cerebrito - Plataforma de Conocimientos"
 version = "1.0.0"
-id = "artifacts/infoquest"
+id = "artifacts/cerebrito"
 router = "path"
 
 [[integratedSkills]]

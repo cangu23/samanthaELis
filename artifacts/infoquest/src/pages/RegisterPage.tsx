@@ -86,7 +86,7 @@ export function RegisterPage() {
                 <Zap className="w-5 h-5 text-primary" />
               </div>
               <span className="font-orbitron text-2xl font-bold">
-                Info<span className="text-primary">Quest</span>
+                Cere<span className="text-primary">brito</span>
               </span>
             </div>
           </Link>

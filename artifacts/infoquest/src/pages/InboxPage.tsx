@@ -1,4 +1,5 @@
-// Pagina de bandeja de entrada: alertas, retroalimentacion y recomendaciones
+// Bandeja de entrada: mensajes directos, alertas y recomendaciones
+// Docentes y estudiantes pueden elegir a quien enviar mensajes
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,374 +7,368 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Bell,
-  MessageSquare,
-  Lightbulb,
-  CheckCircle2,
-  Send,
-  ChevronDown,
-  ChevronUp,
-  AlertCircle,
-  BookOpen,
+  Bell, MessageSquare, Lightbulb, Send, Users, CheckCircle2,
+  AlertCircle, ChevronDown, ChevronUp, ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 
-type TabType = "alertas" | "feedback" | "recomendaciones";
+type Tab = "mensajes" | "alertas" | "recomendaciones";
 
-interface Alert {
+interface Mensaje {
   id: number;
-  titulo: string;
-  mensaje: string;
-  tipo: string;
+  contenido: string;
   leido: boolean;
-  fecha_creacion: string;
+  creado_en: string;
+  es_mio: boolean;
+  remitente: { id: number; nombre: string; rol: string } | null;
+  destinatario: { id: number; nombre: string; rol: string } | null;
 }
+interface Usuario { id: number; nombre: string; usuario: string; rol: string; }
+interface Alerta { id: number; titulo: string; mensaje: string; tipo: string; leido: boolean; fecha_creacion: string; }
+interface Recomendacion { id: number; titulo: string; descripcion: string; tipo: string; leido: boolean; fecha_creacion: string; }
 
-interface Feedback {
-  id: number;
-  mensaje: string;
-  respuesta: string | null;
-  leido: boolean;
-  fecha_creacion: string;
-  docente_nombre?: string;
+function tiempo(fecha: string) {
+  try {
+    return formatDistanceToNow(new Date(fecha), { addSuffix: true, locale: es });
+  } catch { return ""; }
 }
-
-interface Recomendacion {
-  id: number;
-  titulo: string;
-  descripcion: string;
-  tipo: string;
-  leido: boolean;
-  fecha_creacion: string;
-}
-
-const tipoColors: Record<string, string> = {
-  alerta: "#EF4444",
-  logro: "#22C55E",
-  info: "#0EA5E9",
-  tarea: "#A855F7",
-  recurso: "#0EA5E9",
-  practica: "#22C55E",
-  desafio: "#F59E0B",
-};
 
 export function InboxPage() {
-  const { user } = useAuth();
-  const [tab, setTab] = useState<TabType>("alertas");
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [feedback, setFeedback] = useState<Feedback[]>([]);
-  const [recomendaciones, setRecomendaciones] = useState<Recomendacion[]>([]);
+  const { getHeaders } = useAuth();
+  const [tab, setTab] = useState<Tab>("mensajes");
+
+  const [mensajes, setMensajes] = useState<Mensaje[]>([]);
+  const [alertas, setAlertas] = useState<Alerta[]>([]);
+  const [recs, setRecs] = useState<Recomendacion[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+
   const [loading, setLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [feedbackMsg, setFeedbackMsg] = useState("");
-  const [sendingFeedback, setSendingFeedback] = useState(false);
-  const token = localStorage.getItem("infoquest_token");
-  const headers = { Authorization: `Bearer ${token}` };
+  const [composing, setComposing] = useState(false);
+  const [destId, setDestId] = useState<number | "">("");
+  const [texto, setTexto] = useState("");
+  const [sending, setSending] = useState(false);
+  const [expandedAlert, setExpandedAlert] = useState<number | null>(null);
 
-  useEffect(() => {
-    loadAll();
-  }, []);
+  const headers = getHeaders();
 
-  const loadAll = async () => {
+  async function cargarTodo() {
     setLoading(true);
     try {
-      const [alertRes, feedRes, recRes] = await Promise.all([
-        fetch("/api/inbox/alerts", { headers }).then((r) => r.json()),
-        fetch("/api/inbox/feedback", { headers }).then((r) => r.json()),
-        fetch("/api/inbox/recommendations", { headers }).then((r) => r.json()),
+      const [mRes, aRes, rRes, uRes] = await Promise.all([
+        fetch("/api/messages", { headers }),
+        fetch("/api/inbox/alerts", { headers }),
+        fetch("/api/inbox/recommendations", { headers }),
+        fetch("/api/users", { headers }),
       ]);
-      setAlerts(Array.isArray(alertRes) ? alertRes : alertRes.alerts || []);
-      setFeedback(Array.isArray(feedRes) ? feedRes : feedRes.feedback || []);
-      setRecomendaciones(Array.isArray(recRes) ? recRes : recRes.recommendations || []);
-    } catch (err) {
-      console.error("Error cargando bandeja:", err);
+      if (mRes.ok) setMensajes(await mRes.json());
+      if (aRes.ok) setAlertas(await aRes.json());
+      if (rRes.ok) setRecs(await rRes.json());
+      if (uRes.ok) setUsuarios(await uRes.json());
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const markAlertRead = async (id: number) => {
-    await fetch(`/api/inbox/alerts/${id}/read`, { method: "POST", headers }).catch(console.error);
-    setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, leido: true } : a)));
-  };
+  useEffect(() => { cargarTodo(); }, []);
 
-  const sendFeedback = async () => {
-    if (!feedbackMsg.trim()) return;
-    setSendingFeedback(true);
+  async function enviarMensaje() {
+    if (!destId || !texto.trim()) return;
+    setSending(true);
     try {
-      await fetch("/api/inbox/feedback", {
+      const res = await fetch("/api/messages", {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ mensaje: feedbackMsg }),
+        body: JSON.stringify({ id_destinatario: destId, contenido: texto.trim() }),
       });
-      setFeedbackMsg("");
-      await loadAll();
-    } catch (err) {
-      console.error("Error enviando feedback:", err);
-    } finally {
-      setSendingFeedback(false);
-    }
-  };
+      if (res.ok) {
+        setTexto(""); setDestId(""); setComposing(false);
+        cargarTodo();
+      }
+    } finally { setSending(false); }
+  }
 
-  const unreadAlerts = alerts.filter((a) => !a.leido).length;
-  const unreadFeedback = feedback.filter((f) => !f.leido).length;
+  async function marcarAlertaLeida(id: number) {
+    await fetch(`/api/inbox/alerts/${id}/read`, { method: "PUT", headers });
+    setAlertas((prev) => prev.map((a) => a.id === id ? { ...a, leido: true } : a));
+  }
 
-  const tabs: { id: TabType; label: string; icon: React.ElementType; count?: number }[] = [
-    { id: "alertas", label: "Alertas", icon: Bell, count: unreadAlerts },
-    { id: "feedback", label: "Mensajes", icon: MessageSquare, count: unreadFeedback },
+  async function marcarMensajeLeido(id: number) {
+    await fetch(`/api/messages/${id}/read`, { method: "PUT", headers });
+    setMensajes((prev) => prev.map((m) => m.id === id ? { ...m, leido: true } : m));
+  }
+
+  const noLeidosMensajes = mensajes.filter((m) => !m.leido && !m.es_mio).length;
+  const noLeidosAlertas = alertas.filter((a) => !a.leido).length;
+
+  const tabs: { id: Tab; label: string; icon: React.ElementType; badge?: number }[] = [
+    { id: "mensajes", label: "Mensajes", icon: MessageSquare, badge: noLeidosMensajes },
+    { id: "alertas", label: "Alertas", icon: Bell, badge: noLeidosAlertas },
     { id: "recomendaciones", label: "Recomendaciones", icon: Lightbulb },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-5 max-w-3xl mx-auto">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold font-orbitron">Bandeja de Entrada</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Alertas, mensajes y recomendaciones personalizadas
-        </p>
+    <div className="max-w-2xl mx-auto space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold font-orbitron text-white">Bandeja</h1>
+          <p className="text-muted-foreground text-sm">Mensajes, alertas y recomendaciones</p>
+        </div>
+        {tab === "mensajes" && (
+          <Button
+            size="sm"
+            onClick={() => { setComposing(true); }}
+            className="bg-[#0EA5E9] hover:bg-[#0EA5E9]/80 gap-2"
+          >
+            <Send className="w-4 h-4" />
+            Nuevo Mensaje
+          </Button>
+        )}
       </div>
+
+      {/* Compositor de mensaje */}
+      <AnimatePresence>
+        {composing && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="glass-card rounded-xl p-5 border border-[#0EA5E9]/30 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-white flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#0EA5E9]" />
+                Nuevo Mensaje
+              </h3>
+              <Button variant="ghost" size="sm" onClick={() => setComposing(false)}>
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Selector de destinatario */}
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Para:</label>
+              <select
+                value={destId}
+                onChange={(e) => setDestId(Number(e.target.value) || "")}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0EA5E9]"
+              >
+                <option value="">— Seleccionar destinatario —</option>
+                {usuarios
+                  .sort((a, b) => a.rol === "docente" ? -1 : b.rol === "docente" ? 1 : 0)
+                  .map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.nombre} ({u.rol === "docente" ? "Docente" : `Estudiante`}) — @{u.usuario}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Mensaje:</label>
+              <Textarea
+                value={texto}
+                onChange={(e) => setTexto(e.target.value)}
+                placeholder="Escribe tu mensaje aquí..."
+                rows={4}
+                className="bg-background border-border text-white resize-none"
+              />
+            </div>
+
+            <Button
+              onClick={enviarMensaje}
+              disabled={!destId || !texto.trim() || sending}
+              className="w-full bg-[#0EA5E9] hover:bg-[#0EA5E9]/80 gap-2"
+            >
+              <Send className="w-4 h-4" />
+              {sending ? "Enviando..." : "Enviar Mensaje"}
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-border/50 pb-0">
-        {tabs.map(({ id, label, icon: Icon, count }) => (
+      <div className="flex gap-2">
+        {tabs.map((t) => (
           <button
-            key={id}
-            onClick={() => setTab(id)}
+            key={t.id}
+            onClick={() => setTab(t.id)}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 -mb-px text-sm font-medium border-b-2 transition-colors",
-              tab === id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+              "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all",
+              tab === t.id
+                ? "bg-[#0EA5E9] text-white shadow-lg"
+                : "glass-card text-muted-foreground hover:text-white"
             )}
           >
-            <Icon className="w-4 h-4" />
-            {label}
-            {count ? (
-              <span className="px-1.5 py-0.5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold">
-                {count}
-              </span>
+            <t.icon className="w-4 h-4" />
+            {t.label}
+            {t.badge ? (
+              <Badge className="ml-1 bg-red-500 text-white text-xs px-1.5 py-0 h-5 min-w-5">{t.badge}</Badge>
             ) : null}
           </button>
         ))}
       </div>
 
-      {/* Contenido de alertas */}
-      {tab === "alertas" && (
-        <div className="space-y-3">
-          {alerts.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Bell className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p>No tienes alertas por ahora</p>
-            </div>
-          ) : (
-            alerts.map((alert, i) => {
-              const color = tipoColors[alert.tipo] || "#0EA5E9";
-              return (
-                <motion.div
-                  key={alert.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  onClick={() => {
-                    if (!alert.leido) markAlertRead(alert.id);
-                    setExpandedId(expandedId === alert.id ? null : alert.id);
-                  }}
-                  className={cn(
-                    "p-4 rounded-xl border cursor-pointer transition-all",
-                    !alert.leido
-                      ? "border-primary/30 bg-primary/5"
-                      : "border-border/50 bg-card/50",
-                    "hover:border-primary/30"
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                      style={{ backgroundColor: `${color}20`, border: `1px solid ${color}40` }}
-                    >
-                      <AlertCircle className="w-4 h-4" style={{ color }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold">{alert.titulo}</span>
-                        {!alert.leido && (
-                          <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+      {/* Contenido */}
+      {loading ? (
+        <div className="text-center py-12 text-muted-foreground">Cargando...</div>
+      ) : (
+        <AnimatePresence mode="wait">
+          <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+
+            {/* MENSAJES */}
+            {tab === "mensajes" && (
+              <div className="space-y-3">
+                {mensajes.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p>No hay mensajes aún</p>
+                    <p className="text-xs mt-1">Presiona "Nuevo Mensaje" para escribir a alguien</p>
+                  </div>
+                )}
+                {mensajes.map((m) => (
+                  <motion.div
+                    key={m.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className={cn(
+                      "glass-card rounded-xl p-4 border cursor-pointer transition-all",
+                      !m.leido && !m.es_mio
+                        ? "border-[#0EA5E9]/40 bg-[#0EA5E9]/5"
+                        : "border-white/5"
+                    )}
+                    onClick={() => !m.es_mio && !m.leido && marcarMensajeLeido(m.id)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={cn(
+                        "w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0",
+                        m.es_mio ? "bg-[#A855F7]" : "bg-[#0EA5E9]"
+                      )}>
+                        {m.es_mio
+                          ? (m.destinatario?.nombre?.charAt(0) || "?")
+                          : (m.remitente?.nombre?.charAt(0) || "?")}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-white">
+                              {m.es_mio
+                                ? `→ ${m.destinatario?.nombre || "Desconocido"}`
+                                : m.remitente?.nombre || "Desconocido"}
+                            </span>
+                            <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 border-white/20 text-muted-foreground">
+                              {m.es_mio ? "Enviado" : "Recibido"}
+                            </Badge>
+                            {!m.leido && !m.es_mio && (
+                              <Badge className="text-xs px-1.5 py-0 h-4 bg-[#0EA5E9] text-white">Nuevo</Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">{tiempo(m.creado_en)}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{m.contenido}</p>
+                        {m.remitente && (
+                          <p className="text-xs text-muted-foreground/50 mt-1">
+                            {m.es_mio ? `Para: @${m.destinatario?.nombre}` : `De: ${m.remitente.rol === "docente" ? "Docente" : "Estudiante"} @${m.remitente.nombre}`}
+                          </p>
                         )}
                       </div>
-                      {expandedId === alert.id && (
-                        <motion.p
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="text-sm text-muted-foreground mt-2"
-                        >
-                          {alert.mensaje}
-                        </motion.p>
-                      )}
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(alert.fecha_creacion), {
-                          addSuffix: true,
-                          locale: es,
-                        })}
-                      </span>
-                      {expandedId === alert.id ? (
-                        <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })
-          )}
-        </div>
-      )}
+                  </motion.div>
+                ))}
+              </div>
+            )}
 
-      {/* Contenido de feedback/mensajes */}
-      {tab === "feedback" && (
-        <div className="space-y-4">
-          {/* Formulario para enviar mensaje (solo estudiantes) */}
-          {user?.rol === "estudiante" && (
-            <div className="p-4 rounded-xl border border-border/50 bg-card/50 space-y-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2">
-                <Send className="w-4 h-4 text-primary" />
-                Enviar Mensaje al Docente
-              </h3>
-              <Textarea
-                placeholder="Escribe tu pregunta o comentario..."
-                value={feedbackMsg}
-                onChange={(e) => setFeedbackMsg(e.target.value)}
-                rows={3}
-                className="resize-none text-sm"
-              />
-              <Button
-                size="sm"
-                onClick={sendFeedback}
-                disabled={sendingFeedback || !feedbackMsg.trim()}
-                className="gap-2"
-              >
-                {sendingFeedback ? (
-                  <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Send className="w-3.5 h-3.5" />
+            {/* ALERTAS */}
+            {tab === "alertas" && (
+              <div className="space-y-3">
+                {alertas.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p>Sin alertas por ahora</p>
+                  </div>
                 )}
-                Enviar
-              </Button>
-            </div>
-          )}
-
-          {feedback.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p>No hay mensajes todavia</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {feedback.map((item, i) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className={cn(
-                    "p-4 rounded-xl border",
-                    !item.leido ? "border-secondary/30 bg-secondary/5" : "border-border/50 bg-card/50"
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-full bg-secondary/20 border border-secondary/30 flex items-center justify-center flex-shrink-0">
-                      <MessageSquare className="w-4 h-4 text-secondary" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm text-muted-foreground mb-2">{item.mensaje}</div>
-                      {item.respuesta && (
-                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm">
-                          <div className="text-xs text-primary font-semibold mb-1">
-                            Respuesta del docente
-                          </div>
-                          {item.respuesta}
-                        </div>
+                {alertas.map((a) => {
+                  const iconColor =
+                    a.tipo === "logro" ? "#22C55E" :
+                    a.tipo === "bajo_rendimiento" ? "#EF4444" :
+                    a.tipo === "nivel_completado" ? "#A855F7" : "#0EA5E9";
+                  const expanded = expandedAlert === a.id;
+                  return (
+                    <motion.div
+                      key={a.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={cn(
+                        "glass-card rounded-xl p-4 border cursor-pointer",
+                        !a.leido ? "border-[#0EA5E9]/30" : "border-white/5 opacity-70"
                       )}
-                      <div className="text-xs text-muted-foreground mt-2">
-                        {formatDistanceToNow(new Date(item.fecha_creacion), {
-                          addSuffix: true,
-                          locale: es,
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Recomendaciones */}
-      {tab === "recomendaciones" && (
-        <div className="space-y-3">
-          {recomendaciones.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Lightbulb className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p>No hay recomendaciones disponibles</p>
-              <p className="text-xs mt-1">Completa mas retos para recibir recomendaciones personalizadas</p>
-            </div>
-          ) : (
-            recomendaciones.map((rec, i) => {
-              const color = tipoColors[rec.tipo] || "#0EA5E9";
-              return (
-                <motion.div
-                  key={rec.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="p-4 rounded-xl border border-border/50 bg-card/50"
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: `${color}20`, border: `1px solid ${color}40` }}
+                      onClick={() => {
+                        setExpandedAlert(expanded ? null : a.id);
+                        if (!a.leido) marcarAlertaLeida(a.id);
+                      }}
                     >
-                      <BookOpen className="w-4 h-4" style={{ color }} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-semibold">{rec.titulo}</span>
-                        <Badge
-                          variant="outline"
-                          className="text-xs px-1.5 py-0"
-                          style={{ borderColor: `${color}40`, color }}
-                        >
-                          {rec.tipo}
-                        </Badge>
+                      <div className="flex items-center gap-3">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: iconColor }} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-semibold text-white">{a.titulo}</p>
+                            <div className="flex items-center gap-2">
+                              {!a.leido && <div className="w-2 h-2 rounded-full bg-[#0EA5E9]" />}
+                              {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                            </div>
+                          </div>
+                          {!expanded && <p className="text-xs text-muted-foreground truncate">{a.mensaje}</p>}
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">{rec.descripcion}</p>
-                      <div className="text-xs text-muted-foreground mt-2">
-                        {formatDistanceToNow(new Date(rec.fecha_creacion), {
-                          addSuffix: true,
-                          locale: es,
-                        })}
-                      </div>
-                    </div>
+                      <AnimatePresence>
+                        {expanded && (
+                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                            <div className="mt-3 pt-3 border-t border-white/10">
+                              <p className="text-sm text-muted-foreground">{a.mensaje}</p>
+                              <p className="text-xs text-muted-foreground/50 mt-2">{tiempo(a.fecha_creacion)}</p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* RECOMENDACIONES */}
+            {tab === "recomendaciones" && (
+              <div className="space-y-3">
+                {recs.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Lightbulb className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p>Sin recomendaciones aún</p>
+                    <p className="text-xs mt-1">Completa retos para recibir sugerencias personalizadas</p>
                   </div>
-                </motion.div>
-              );
-            })
-          )}
-        </div>
+                )}
+                {recs.map((r) => (
+                  <motion.div
+                    key={r.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="glass-card rounded-xl p-4 border border-[#22C55E]/20"
+                  >
+                    <div className="flex items-start gap-3">
+                      <Lightbulb className="w-5 h-5 text-[#22C55E] flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-semibold text-white">{r.titulo}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{r.descripcion}</p>
+                        <p className="text-xs text-muted-foreground/50 mt-2">{tiempo(r.fecha_creacion)}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+          </motion.div>
+        </AnimatePresence>
       )}
     </div>
   );

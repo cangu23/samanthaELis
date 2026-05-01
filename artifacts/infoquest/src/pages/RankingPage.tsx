@@ -77,7 +77,7 @@ export function RankingPage() {
           Tabla de Clasificacion
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Los mejores estudiantes de InfoQuest Ecuador
+          Los mejores estudiantes del Nacional Cumbaya
         </p>
       </div>
 

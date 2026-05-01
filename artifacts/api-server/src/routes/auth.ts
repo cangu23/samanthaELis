@@ -102,18 +102,39 @@ router.post("/auth/login", async (req, res) => {
       return;
     }
 
-    // Actualiza el ultimo acceso
+    // Calcula la racha de dias consecutivos (ventana de 24 horas)
+    const ahora = new Date();
+    let nuevaRacha = perfil.racha_dias || 0;
+
+    if (!perfil.ultimo_acceso) {
+      // Primera vez que entra
+      nuevaRacha = 1;
+    } else {
+      const diffHoras = (ahora.getTime() - perfil.ultimo_acceso.getTime()) / (1000 * 60 * 60);
+      if (diffHoras < 24) {
+        // Ya entro hoy, no cambia la racha
+        nuevaRacha = perfil.racha_dias;
+      } else if (diffHoras < 48) {
+        // Entro ayer — dia consecutivo, sube la racha
+        nuevaRacha = (perfil.racha_dias || 0) + 1;
+      } else {
+        // Falto mas de un dia — pierde la racha
+        nuevaRacha = 1;
+      }
+    }
+
+    // Actualiza el ultimo acceso y la racha
     await db
       .update(perfilesTable)
-      .set({ ultimo_acceso: new Date() })
+      .set({ ultimo_acceso: ahora, racha_dias: nuevaRacha })
       .where(eq(perfilesTable.id, perfil.id));
 
     // Genera el token JWT
     const token = generarToken({ userId: perfil.id, usuario: perfil.usuario, rol: perfil.rol });
 
-    // Retorna el usuario sin la contrasena
+    // Retorna el usuario sin la contrasena (con racha actualizada)
     const { password_hash: _, ...perfilPublico } = perfil;
-    res.json({ user: perfilPublico, token });
+    res.json({ user: { ...perfilPublico, racha_dias: nuevaRacha }, token });
   } catch (err) {
     req.log.error({ err }, "Error en login");
     res.status(500).json({ error: "server_error", message: "Error interno del servidor" });

@@ -23,6 +23,8 @@ export const tipoJuegoEnum = pgEnum("tipo_juego", [
   "security_puzzle",  // Rompecabezas de seguridad informatica
   "drag_drop",        // Arrastrar y soltar elementos al lugar correcto
   "speed_race",       // Carrera de velocidad - responder lo mas rapido posible
+  "word_search",      // Sopa de letras interactiva
+  "crossword",        // Crucigrama con pistas horizontales y verticales
 ]);
 
 // Tabla de retos predefinidos por el sistema

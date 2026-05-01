@@ -1,4 +1,4 @@
-// Pagina de reto: motor de juego para quiz, code_challenge, security_puzzle y speed_race
+// Motor de juego: quiz, speed_race, code_challenge, security_puzzle, word_search, crossword
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,15 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RobotMascot } from "@/components/mascot/RobotMascot";
+import WordSearchGame from "@/components/games/WordSearchGame";
+import CrosswordGame from "@/components/games/CrosswordGame";
 import {
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Trophy,
-  Zap,
-  ArrowLeft,
-  Star,
-  ChevronRight,
+  Clock, CheckCircle2, XCircle, Trophy, Zap, ArrowLeft, Star, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -181,18 +176,21 @@ export function ChallengePage() {
     }
   };
 
-  // Guarda el resultado en el servidor
-  const submitResult = async () => {
+  // Guarda el resultado en el servidor (acepta valores directos para evitar stale state)
+  const submitResult = async (overrideScore?: number, overrideCorrect?: number, overrideTotal?: number) => {
     if (!reto) return;
+    const finalScore = overrideScore ?? score;
+    const finalCorrect = overrideCorrect ?? correctCount;
+    const finalTotal = overrideTotal ?? preguntas.length;
     try {
       await fetch(`/api/results`, {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           id_reto: reto.id,
-          puntaje: score,
-          respuestas_correctas: correctCount,
-          total_preguntas: preguntas.length,
+          puntaje: finalScore,
+          respuestas_correctas: finalCorrect,
+          total_preguntas: finalTotal || 1,
           tiempo_empleado: totalTime - timeLeft,
           completado: true,
           respuestas: answeredQuestions,
@@ -201,6 +199,8 @@ export function ChallengePage() {
     } catch (err) {
       console.error("Error guardando resultado:", err);
     }
+    setScore(finalScore);
+    setCorrectCount(finalCorrect);
     setGameState("result");
   };
 
@@ -216,6 +216,8 @@ export function ChallengePage() {
     security_puzzle: "#22C55E",
     drag_drop: "#F59E0B",
     speed_race: "#EF4444",
+    word_search: "#06B6D4",
+    crossword: "#8B5CF6",
   };
 
   if (gameState === "loading") {
@@ -338,7 +340,53 @@ export function ChallengePage() {
     );
   }
 
-  // Pantalla de juego activo
+  // Juego de sopa de letras
+  if (gameState === "playing" && reto?.tipo_juego === "word_search") {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold font-orbitron text-[#06B6D4]">{reto.nombre}</h2>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-[#06B6D4]/10 border-[#06B6D4]/30 text-[#06B6D4] text-sm font-mono font-bold">
+            <Clock className="w-3.5 h-3.5" />{formatTime(timeLeft)}
+          </div>
+        </div>
+        <div className="glass-card rounded-2xl p-5">
+          <WordSearchGame
+            challengeName={reto.nombre}
+            onFinish={(pts, found, total) => {
+              stopTimer();
+              submitResult(pts, found, total);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Juego de crucigrama
+  if (gameState === "playing" && reto?.tipo_juego === "crossword") {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold font-orbitron text-[#8B5CF6]">{reto.nombre}</h2>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-[#8B5CF6]/10 border-[#8B5CF6]/30 text-[#8B5CF6] text-sm font-mono font-bold">
+            <Clock className="w-3.5 h-3.5" />{formatTime(timeLeft)}
+          </div>
+        </div>
+        <div className="glass-card rounded-2xl p-5">
+          <CrosswordGame
+            challengeName={reto.nombre}
+            onFinish={(pts, correct, total) => {
+              stopTimer();
+              submitResult(pts, correct, total);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Pantalla de juego activo (quiz, speed_race, code_challenge, etc.)
   if (gameState === "playing" && preguntas[currentIndex] && reto) {
     const pregunta = preguntas[currentIndex];
     const progress = ((currentIndex + 1) / preguntas.length) * 100;

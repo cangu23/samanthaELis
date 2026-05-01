@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, BookOpen, Zap, Lock } from "lucide-react";
+import { ChevronRight, BookOpen, Zap, Lock, Search, X } from "lucide-react";
 
 interface Modulo {
   id: number;
@@ -40,6 +40,8 @@ const tipoLabels: Record<string, string> = {
   security_puzzle: "Seguridad",
   drag_drop: "Drag & Drop",
   speed_race: "Velocidad",
+  word_search: "Sopa de Letras",
+  crossword: "Crucigrama",
 };
 
 export function ModulesPage() {
@@ -49,6 +51,7 @@ export function ModulesPage() {
   const [levels, setLevels] = useState<Record<number, Nivel[]>>({});
   const [challenges, setChallenges] = useState<Record<number, Reto[]>>({});
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const token = localStorage.getItem("infoquest_token");
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -116,6 +119,19 @@ export function ModulesPage() {
     );
   }
 
+  // Filtrar modulos y retos por la busqueda
+  const query = search.toLowerCase().trim();
+  const filteredModules = visibleModules.filter((mod) => {
+    if (!query) return true;
+    if (mod.nombre.toLowerCase().includes(query) || mod.descripcion?.toLowerCase().includes(query)) return true;
+    const modChallenges = challenges[mod.id] || [];
+    return modChallenges.some(
+      (r) =>
+        r.nombre.toLowerCase().includes(query) ||
+        (tipoLabels[r.tipo_juego] || r.tipo_juego).toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="space-y-5">
       <div>
@@ -127,8 +143,32 @@ export function ModulesPage() {
         </p>
       </div>
 
+      {/* Buscador de temas y retos */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por tema, reto o tipo de juego..."
+          className="w-full pl-10 pr-10 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/60 transition-colors"
+        />
+        {search && (
+          <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {query && filteredModules.length === 0 && (
+        <div className="text-center py-10 text-muted-foreground">
+          <Search className="w-10 h-10 mx-auto mb-2 opacity-30" />
+          <p>No se encontraron resultados para "<span className="text-white">{search}</span>"</p>
+        </div>
+      )}
+
       <div className="space-y-4">
-        {visibleModules.map((mod, i) => {
+        {filteredModules.map((mod, i) => {
           const isOpen = expanded === mod.id;
           const modLevels = levels[mod.id] || [];
           const modChallenges = challenges[mod.id] || [];

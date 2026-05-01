@@ -25,7 +25,7 @@ const features = [
   {
     icon: Zap,
     color: "#F59E0B",
-    title: "Retos Gamificados",
+    title: "Retos",
     desc: "Quiz, código, puzzles de seguridad, drag & drop y carreras contra el tiempo",
   },
   {
@@ -38,15 +38,15 @@ const features = [
     icon: Shield,
     color: "#A855F7",
     title: "Ciberseguridad",
-    desc: "Aprende fundamentos de seguridad informatica y ethical hacking",
+    desc: "Aprende fundamentos de seguridad informatica",
   },
 ];
 
 const stats = [
   { label: "Módulos", value: "3" },
-  { label: "Tipos de Reto", value: "5+" },
-  { label: "Preguntas", value: "50+" },
-  { label: "Niveles", value: "9" },
+  { label: "Tipos de Reto", value: "2+" },
+  { label: "Preguntas", value: "2+" },
+  { label: "Niveles", value: "3" },
 ];
 
 export function LandingPage() {
@@ -66,7 +66,7 @@ export function LandingPage() {
             <Zap className="w-5 h-5 text-primary" />
           </div>
           <span className="font-orbitron text-xl font-bold">
-            Info<span className="text-primary">Quest</span>
+            Cere<span className="text-primary">brito</span>
           </span>
         </motion.div>
 
@@ -113,9 +113,9 @@ export function LandingPage() {
             </h1>
 
             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-              InfoQuest es la plataforma gamificada de competicion para estudiantes
-              de Bachillerato en Informatica del Ecuador. Completa retos, gana puntos
-              y demuestra quien domina la programacion.
+              Cerebrito es la plataforma de competicion para
+              estudiantes de bachillerato en Informatica del Colegio Cumbaya. Completa
+              retos, gana puntos y demuestra quien domina la programacion.
             </p>
 
             <div className="flex flex-wrap gap-4 mb-10">
@@ -126,7 +126,11 @@ export function LandingPage() {
                 </Button>
               </Link>
               <Link href="/login">
-                <Button size="lg" variant="outline" className="gap-2 text-base px-6">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="gap-2 text-base px-6"
+                >
                   <Users className="w-5 h-5" />
                   Soy Docente
                 </Button>
@@ -146,7 +150,9 @@ export function LandingPage() {
                   <div className="text-2xl font-bold font-orbitron text-primary">
                     {value}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">{label}</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {label}
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -177,9 +183,12 @@ export function LandingPage() {
               transition={{ delay: 0.8 }}
               className="mt-2 px-4 py-2 rounded-xl bg-card/80 border border-primary/30 text-sm text-center max-w-xs"
             >
-              <span className="text-primary font-semibold">¡Hola, explorador!</span>
+              <span className="text-primary font-semibold">
+                ¡Hola, explorador!
+              </span>
               <span className="text-muted-foreground">
-                {" "}Listo para conquistar el conocimiento digital?
+                {" "}
+                Listo para conquistar el conocimiento digital?
               </span>
             </motion.div>
           </motion.div>
@@ -200,12 +209,17 @@ export function LandingPage() {
             >
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${color}20`, border: `1px solid ${color}40` }}
+                style={{
+                  backgroundColor: `${color}20`,
+                  border: `1px solid ${color}40`,
+                }}
               >
                 <Icon className="w-5 h-5" style={{ color }} />
               </div>
               <h3 className="font-semibold text-sm mb-1">{title}</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {desc}
+              </p>
             </motion.div>
           ))}
         </motion.div>
@@ -220,10 +234,10 @@ export function LandingPage() {
           <div className="flex flex-wrap items-center gap-4 justify-between">
             <div>
               <h2 className="text-xl font-bold mb-1">
-                Contenido para todo el Bachillerato
+                Contenido variado para el Bachillerato
               </h2>
               <p className="text-muted-foreground text-sm">
-                Desde Python basico hasta ciberseguridad avanzada
+                De poquito en poquito para poder repasar 
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -235,7 +249,10 @@ export function LandingPage() {
                 <div
                   key={year}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg"
-                  style={{ backgroundColor: `${color}15`, border: `1px solid ${color}30` }}
+                  style={{
+                    backgroundColor: `${color}15`,
+                    border: `1px solid ${color}30`,
+                  }}
                 >
                   <Code2 className="w-4 h-4" style={{ color }} />
                   <div>
@@ -253,7 +270,7 @@ export function LandingPage() {
 
       {/* Footer minimalista */}
       <footer className="relative z-10 border-t border-border/50 py-6 text-center text-xs text-muted-foreground">
-        InfoQuest — Plataforma Educativa para Bachillerato en Informática · Ecuador
+        Cerebrito — Plataforma Educativa para Bachillerato en Informática · Nacional Cumbaya  
       </footer>
     </div>
   );

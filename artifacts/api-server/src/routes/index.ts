@@ -1,4 +1,4 @@
-// Router principal del servidor - registra todas las rutas de la plataforma InfoQuest
+// Router principal del servidor - registra todas las rutas de la plataforma Cerebrito
 // Cada modulo de rutas maneja una parte especifica de la funcionalidad
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
@@ -11,6 +11,7 @@ import inboxRouter from "./inbox";
 import feedbackRouter from "./feedback";
 import savedAttemptsRouter from "./saved_attempts";
 import profilesRouter from "./profiles";
+import messagesRouter from "./messages";
 
 const router: IRouter = Router();
 
@@ -43,5 +44,8 @@ router.use(savedAttemptsRouter);
 
 // Rutas de perfiles de usuario
 router.use(profilesRouter);
+
+// Rutas de mensajes directos entre usuarios (bidireccional con destinatario elegido)
+router.use(messagesRouter);
 
 export default router;

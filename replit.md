@@ -1,12 +1,12 @@
-# InfoQuest - Plataforma Gamificada de Informatica
+# Cerebrito - Plataforma Gamificada de Informatica
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. InfoQuest is a gamified educational competition platform for high school informatics students (bachillerato) in Ecuador. Features: 3 modules (one per year), competitive challenges (quiz, code_challenge, security_puzzle, drag_drop, speed_race), teacher registration/dashboard with custom challenge creation, student dashboard restricted to their grade level, ranked leaderboard with color tiers, inbox (alerts, feedback, recommendations), saved progress.
+pnpm workspace monorepo using TypeScript. Cerebrito is a gamified educational competition platform for high school informatics students (bachillerato) in Nacional Cumbaya. Features: 3 modules (one per year), competitive challenges (quiz, code_challenge, security_puzzle, drag_drop, speed_race), teacher registration/dashboard with custom challenge creation, student dashboard restricted to their grade level, ranked leaderboard with color tiers, inbox (alerts, feedback, recommendations), saved progress.
 
 ## Artifacts
 
-- **artifacts/infoquest** — React + Vite frontend at `/`
+- **artifacts/Cerebrito** — React + Vite frontend at `/`
 - **artifacts/api-server** — Express + TypeScript API at `/api/*`
 
 ## Stack
@@ -21,7 +21,7 @@ pnpm workspace monorepo using TypeScript. InfoQuest is a gamified educational co
 - **Frontend**: React + Vite, Tailwind CSS, shadcn/ui, Framer Motion
 - **Fonts**: Orbitron, Inter, JetBrains Mono
 - **Color palette**: Dark bg, electric blue #0EA5E9, cyan #06B6D4, vivid green #22C55E, purple #A855F7
-- **Auth**: JWT Bearer tokens, stored in `localStorage["infoquest_token"]`
+- **Auth**: JWT Bearer tokens, stored in `localStorage["Cerebrito_token"]`
 
 ## Database Schema
 
@@ -86,6 +86,6 @@ Key field names:
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
-- `pnpm --filter @workspace/infoquest run dev` — run frontend locally
+- `pnpm --filter @workspace/Carebrito run dev` — run frontend locally
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.

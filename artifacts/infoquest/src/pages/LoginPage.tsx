@@ -1,4 +1,3 @@
-// Pagina de inicio de sesion con diseno cyber
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -56,7 +55,7 @@ export function LoginPage() {
                 <Zap className="w-5 h-5 text-primary" />
               </div>
               <span className="font-orbitron text-2xl font-bold">
-                Info<span className="text-primary">Quest</span>
+                Cere<span className="text-primary">brito</span>
               </span>
             </div>
           </Link>
