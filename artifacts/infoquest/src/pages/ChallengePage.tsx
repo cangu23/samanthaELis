@@ -1,4 +1,4 @@
-// Motor de juego: quiz, speed_race, code_challenge, security_puzzle, word_search, crossword
+// Motor de juego: quiz, speed_race, code_challenge, security_puzzle, word_search, crossword, drag_drop
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { RobotMascot } from "@/components/mascot/RobotMascot";
 import WordSearchGame from "@/components/games/WordSearchGame";
 import CrosswordGame from "@/components/games/CrosswordGame";
+import DragDropGame from "@/components/games/DragDropGame";
 import {
   Clock, CheckCircle2, XCircle, Trophy, Zap, ArrowLeft, Star, ChevronRight,
 } from "lucide-react";
@@ -375,6 +376,29 @@ export function ChallengePage() {
         </div>
         <div className="glass-card rounded-2xl p-5">
           <CrosswordGame
+            challengeName={reto.nombre}
+            onFinish={(pts, correct, total) => {
+              stopTimer();
+              submitResult(pts, correct, total);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Juego de ordenar código (drag & drop)
+  if (gameState === "playing" && reto?.tipo_juego === "drag_drop") {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold font-orbitron text-[#F59E0B]">{reto.nombre}</h2>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B] text-sm font-mono font-bold">
+            <Clock className="w-3.5 h-3.5" />{formatTime(timeLeft)}
+          </div>
+        </div>
+        <div className="glass-card rounded-2xl p-5">
+          <DragDropGame
             challengeName={reto.nombre}
             onFinish={(pts, correct, total) => {
               stopTimer();

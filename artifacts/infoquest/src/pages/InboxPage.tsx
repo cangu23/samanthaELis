@@ -36,7 +36,8 @@ function tiempo(fecha: string) {
 }
 
 export function InboxPage() {
-  const { getHeaders } = useAuth();
+  useAuth(); // solo para proteger la ruta
+  const token = localStorage.getItem("cerebrito_token");
   const [tab, setTab] = useState<Tab>("mensajes");
 
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
@@ -51,7 +52,7 @@ export function InboxPage() {
   const [sending, setSending] = useState(false);
   const [expandedAlert, setExpandedAlert] = useState<number | null>(null);
 
-  const headers = getHeaders();
+  const headers = { Authorization: `Bearer ${token}` };
 
   async function cargarTodo() {
     setLoading(true);
