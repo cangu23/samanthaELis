@@ -1,19 +1,19 @@
 // App principal de Cerebrito - Router y layout global
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { Navbar } from "@/components/layout/Navbar";
-import { LandingPage } from "@/pages/LandingPage";
-import { LoginPage } from "@/pages/LoginPage";
-import { RegisterPage } from "@/pages/RegisterPage";
-import { DashboardPage } from "@/pages/DashboardPage";
-import { ModulesPage } from "@/pages/ModulesPage";
-import { ChallengePage } from "@/pages/ChallengePage";
-import { RankingPage } from "@/pages/RankingPage";
-import { InboxPage } from "@/pages/InboxPage";
-import { ProfilePage } from "@/pages/ProfilePage";
-import { CreateChallengePage } from "@/pages/CreateChallengePage";
-import { JuegosPage } from "@/pages/JuegosPage";
+import { AuthProvider, useAuth } from "@/contextos/AuthContext";
+import { Navbar } from "@/componentes/diseno/Navbar";
+import { LandingPage } from "@/paginas/LandingPage";
+import { LoginPage } from "@/paginas/LoginPage";
+import { RegisterPage } from "@/paginas/RegisterPage";
+import { DashboardPage } from "@/paginas/DashboardPage";
+import { ModulesPage } from "@/paginas/ModulesPage";
+import { ChallengePage } from "@/paginas/ChallengePage";
+import { RankingPage } from "@/paginas/RankingPage";
+import { InboxPage } from "@/paginas/InboxPage";
+import { ProfilePage } from "@/paginas/ProfilePage";
+import { CreateChallengePage } from "@/paginas/CreateChallengePage";
+import { JuegosPage } from "@/paginas/JuegosPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
