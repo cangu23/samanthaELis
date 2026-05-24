@@ -1,5 +1,4 @@
 // Pagina para que los docentes creen retos personalizados
-// El formulario se adapta segun el tipo de juego seleccionado
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contextos/AuthContext";
@@ -7,33 +6,13 @@ import { Button } from "@/componentes/interfaz/button";
 import { Input } from "@/componentes/interfaz/input";
 import { Label } from "@/componentes/interfaz/label";
 import { Textarea } from "@/componentes/interfaz/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/componentes/interfaz/select";
 import { Alert, AlertDescription } from "@/componentes/interfaz/alert";
 import {
-  ArrowLeft,
-  PlusCircle,
-  Trash2,
-  CheckCircle2,
-  AlertCircle,
-  Zap,
-  Copy,
-  Check,
-  Link as LinkIcon,
-  BookOpen,
-  Code2,
-  Shield,
-  Zap as ZapIcon,
-  Search,
-  Grid3x3,
+  ArrowLeft, PlusCircle, Trash2, CheckCircle2, AlertCircle,
+  Zap, Copy, Check, Link as LinkIcon, BookOpen, Code2, Shield,
+  Zap as ZapIcon, Search, Grid3x3,
 } from "lucide-react";
 
-// Tipos de preguntas segun el juego
 interface PreguntaQuiz {
   texto: string;
   tipo: "multiple_choice" | "true_false" | "code_completion";
@@ -42,27 +21,22 @@ interface PreguntaQuiz {
   explicacion: string;
   puntos: number;
 }
-
-interface PalabraSopa {
-  palabra: string;
-  pista: string;
-}
-
-interface PalabraCrucigrama {
-  palabra: string;
-  pista: string;
-}
-
+interface PalabraSopa { palabra: string; pista: string; }
+interface PalabraCrucigrama { palabra: string; pista: string; }
 type TipoJuego = "quiz" | "code_challenge" | "security_puzzle" | "speed_race" | "word_search" | "crossword";
 
 const TIPOS_JUEGO: { value: TipoJuego; label: string; icon: React.ElementType; descripcion: string }[] = [
-  { value: "quiz", label: "Quiz", icon: BookOpen, descripcion: "Preguntas de opcion multiple o verdadero/falso" },
-  { value: "code_challenge", label: "Desafio de Codigo", icon: Code2, descripcion: "Completar o analizar fragmentos de codigo" },
-  { value: "security_puzzle", label: "Puzzle de Seguridad", icon: Shield, descripcion: "Preguntas sobre ciberseguridad" },
-  { value: "speed_race", label: "Carrera Rapida", icon: ZapIcon, descripcion: "Preguntas rapidas contra el tiempo" },
-  { value: "word_search", label: "Sopa de Letras", icon: Search, descripcion: "Palabras que los estudiantes deben encontrar" },
-  { value: "crossword", label: "Crucigrama", icon: Grid3x3, descripcion: "Palabras con pistas para completar" },
+  { value: "quiz",             label: "Quiz",                icon: BookOpen,  descripcion: "Preguntas de opcion multiple o verdadero/falso" },
+  { value: "code_challenge",   label: "Desafio de Codigo",   icon: Code2,     descripcion: "Completar o analizar fragmentos de codigo" },
+  { value: "security_puzzle",  label: "Puzzle de Seguridad", icon: Shield,    descripcion: "Preguntas sobre ciberseguridad" },
+  { value: "speed_race",       label: "Carrera Rapida",      icon: ZapIcon,   descripcion: "Preguntas rapidas contra el tiempo" },
+  { value: "word_search",      label: "Sopa de Letras",      icon: Search,    descripcion: "Palabras que los estudiantes deben encontrar" },
+  { value: "crossword",        label: "Crucigrama",          icon: Grid3x3,   descripcion: "Palabras con pistas para completar" },
 ];
+
+// Clase comun para los <select> nativos
+const selectCls =
+  "w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/60 transition-colors appearance-none cursor-pointer";
 
 export function CreateChallengePage() {
   const { user } = useAuth();
@@ -70,30 +44,20 @@ export function CreateChallengePage() {
   const token = localStorage.getItem("cerebrito_token");
   const headers = { Authorization: `Bearer ${token}` };
 
-  // Datos del reto
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [tipoJuego, setTipoJuego] = useState<TipoJuego>("quiz");
   const [tiempoLimite, setTiempoLimite] = useState("300");
   const [modulo, setModulo] = useState("1");
 
-  // Preguntas para juegos tipo quiz/codigo/seguridad/carrera
   const [preguntas, setPreguntas] = useState<PreguntaQuiz[]>([
     { texto: "", tipo: "multiple_choice", opciones: ["", "", "", ""], respuesta_correcta: "", explicacion: "", puntos: 10 },
   ]);
-
-  // Palabras para sopa de letras
   const [palabrasSopa, setPalabrasSopa] = useState<PalabraSopa[]>([
-    { palabra: "", pista: "" },
-    { palabra: "", pista: "" },
-    { palabra: "", pista: "" },
+    { palabra: "", pista: "" }, { palabra: "", pista: "" }, { palabra: "", pista: "" },
   ]);
-
-  // Palabras para crucigrama
   const [palabrasCrucigrama, setPalabrasCrucigrama] = useState<PalabraCrucigrama[]>([
-    { palabra: "", pista: "" },
-    { palabra: "", pista: "" },
-    { palabra: "", pista: "" },
+    { palabra: "", pista: "" }, { palabra: "", pista: "" }, { palabra: "", pista: "" },
   ]);
 
   const [loading, setLoading] = useState(false);
@@ -105,7 +69,6 @@ export function CreateChallengePage() {
   const esSopa = tipoJuego === "word_search";
   const esCrucigrama = tipoJuego === "crossword";
 
-  // Solo docentes pueden acceder
   if (user?.rol !== "docente") {
     return (
       <div className="text-center py-20 text-muted-foreground">
@@ -115,10 +78,9 @@ export function CreateChallengePage() {
     );
   }
 
-  // --- Handlers de preguntas quiz ---
-  const addPregunta = () => {
+  // Handlers preguntas
+  const addPregunta = () =>
     setPreguntas([...preguntas, { texto: "", tipo: "multiple_choice", opciones: ["", "", "", ""], respuesta_correcta: "", explicacion: "", puntos: 10 }]);
-  };
   const removePregunta = (i: number) => { if (preguntas.length > 1) setPreguntas(preguntas.filter((_, idx) => idx !== i)); };
   const updatePregunta = (i: number, field: keyof PreguntaQuiz, value: string | number | string[]) => {
     const updated = [...preguntas];
@@ -137,67 +99,50 @@ export function CreateChallengePage() {
     setPreguntas(updated);
   };
 
-  // --- Handlers de sopa de letras ---
+  // Handlers sopa
   const addPalabraSopa = () => setPalabrasSopa([...palabrasSopa, { palabra: "", pista: "" }]);
   const removePalabraSopa = (i: number) => { if (palabrasSopa.length > 1) setPalabrasSopa(palabrasSopa.filter((_, idx) => idx !== i)); };
   const updatePalabraSopa = (i: number, field: keyof PalabraSopa, value: string) => {
-    const updated = [...palabrasSopa];
-    updated[i][field] = value;
-    setPalabrasSopa(updated);
+    const updated = [...palabrasSopa]; updated[i][field] = value; setPalabrasSopa(updated);
   };
 
-  // --- Handlers de crucigrama ---
+  // Handlers crucigrama
   const addPalabraCrucigrama = () => setPalabrasCrucigrama([...palabrasCrucigrama, { palabra: "", pista: "" }]);
   const removePalabraCrucigrama = (i: number) => { if (palabrasCrucigrama.length > 1) setPalabrasCrucigrama(palabrasCrucigrama.filter((_, idx) => idx !== i)); };
   const updatePalabraCrucigrama = (i: number, field: keyof PalabraCrucigrama, value: string) => {
-    const updated = [...palabrasCrucigrama];
-    updated[i][field] = value;
-    setPalabrasCrucigrama(updated);
+    const updated = [...palabrasCrucigrama]; updated[i][field] = value; setPalabrasCrucigrama(updated);
   };
 
-  // --- Copiar link ---
-  // IDs negativos = retos personalizados en la plataforma
   const linkReto = retoCreado ? `${window.location.origin}/challenge/-${retoCreado.id}` : "";
   const copiarLink = async () => {
     await navigator.clipboard.writeText(linkReto);
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 2000);
+    setCopiado(true); setTimeout(() => setCopiado(false), 2000);
   };
 
-  // --- Construir preguntas para sopa/crucigrama ---
   const buildPreguntasPalabras = (lista: PalabraSopa[] | PalabraCrucigrama[]): PreguntaQuiz[] =>
     lista.map((item) => ({
-      texto: item.pista || item.palabra,
-      tipo: "multiple_choice" as const,
-      opciones: [item.palabra],
-      respuesta_correcta: item.palabra.toUpperCase(),
-      explicacion: "",
-      puntos: 10,
+      texto: item.pista || item.palabra, tipo: "multiple_choice" as const,
+      opciones: [item.palabra], respuesta_correcta: item.palabra.toUpperCase(),
+      explicacion: "", puntos: 10,
     }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre.trim() || !descripcion.trim()) { setError("Completa el nombre y descripcion del reto"); return; }
-
-    // Validaciones por tipo
     if (esJuegoConPreguntas) {
       for (let i = 0; i < preguntas.length; i++) {
         if (!preguntas[i].texto.trim()) { setError(`La pregunta ${i + 1} no tiene texto`); return; }
         if (!preguntas[i].respuesta_correcta.trim()) { setError(`La pregunta ${i + 1} no tiene respuesta correcta`); return; }
       }
     }
-    if (esSopa) {
-      const validas = palabrasSopa.filter((p) => p.palabra.trim());
-      if (validas.length < 3) { setError("Agrega al menos 3 palabras para la sopa de letras"); return; }
+    if (esSopa && palabrasSopa.filter((p) => p.palabra.trim()).length < 3) {
+      setError("Agrega al menos 3 palabras para la sopa de letras"); return;
     }
-    if (esCrucigrama) {
-      const validas = palabrasCrucigrama.filter((p) => p.palabra.trim() && p.pista.trim());
-      if (validas.length < 3) { setError("Agrega al menos 3 palabras con sus pistas"); return; }
+    if (esCrucigrama && palabrasCrucigrama.filter((p) => p.palabra.trim() && p.pista.trim()).length < 3) {
+      setError("Agrega al menos 3 palabras con sus pistas"); return;
     }
 
-    setLoading(true);
-    setError("");
-
+    setLoading(true); setError("");
     try {
       const modulosRes = await fetch(`/api/modules?anio=${modulo}`, { headers });
       const modulosData = await modulosRes.json();
@@ -218,34 +163,26 @@ export function CreateChallengePage() {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
-          nombre: nombre.trim(),
-          descripcion: descripcion.trim(),
-          tipo_juego: tipoJuego,
-          tiempo_limite: parseInt(tiempoLimite),
-          id_modulo: selectedModule.id,
-          id_nivel: firstLevel.id,
+          nombre: nombre.trim(), descripcion: descripcion.trim(),
+          tipo_juego: tipoJuego, tiempo_limite: parseInt(tiempoLimite),
+          id_modulo: selectedModule.id, id_nivel: firstLevel.id,
           puntos_maximos: preguntasFinales.reduce((s, p) => s + p.puntos, 0),
           numero_preguntas: preguntasFinales.length,
           preguntas: preguntasFinales.map((p) => ({
-            ...p,
-            dificultad: "medio",
-            opciones: p.opciones.filter((o) => o.trim()),
+            ...p, dificultad: "medio", opciones: p.opciones.filter((o) => o.trim()),
           })),
         }),
       });
 
       if (!res.ok) { const err = await res.json(); throw new Error(err.message || "Error al crear el reto"); }
-
       const data = await res.json();
       setRetoCreado({ id: data.id || data.reto?.id, nombre: nombre.trim() });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al crear el reto");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  // --- Pantalla de exito con link para compartir ---
+  // Pantalla de exito
   if (retoCreado) {
     return (
       <div className="max-w-xl mx-auto text-center py-16 space-y-6 page-enter">
@@ -253,10 +190,9 @@ export function CreateChallengePage() {
           <CheckCircle2 className="w-10 h-10 text-accent" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold">¡Reto creado con exito!</h2>
+          <h2 className="text-2xl font-bold">Reto creado con exito!</h2>
           <p className="text-muted-foreground mt-1">Comparte el link con tus estudiantes</p>
         </div>
-
         <div className="glass-card rounded-xl p-5 space-y-3 text-left">
           <div className="flex items-center gap-2 text-sm font-medium">
             <LinkIcon className="w-4 h-4 text-primary" />
@@ -272,13 +208,17 @@ export function CreateChallengePage() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Los estudiantes tambien pueden buscar el reto en la seccion <strong>Juegos</strong> de la plataforma.
+            Los estudiantes tambien pueden buscar el reto en la seccion <strong>Juegos</strong>.
           </p>
         </div>
-
         <div className="flex gap-3 justify-center">
           <Button variant="outline" onClick={() => navigate("/dashboard")}>Ir al Dashboard</Button>
-          <Button onClick={() => { setRetoCreado(null); setNombre(""); setDescripcion(""); setPreguntas([{ texto: "", tipo: "multiple_choice", opciones: ["", "", "", ""], respuesta_correcta: "", explicacion: "", puntos: 10 }]); setPalabrasSopa([{ palabra: "", pista: "" }, { palabra: "", pista: "" }, { palabra: "", pista: "" }]); setPalabrasCrucigrama([{ palabra: "", pista: "" }, { palabra: "", pista: "" }, { palabra: "", pista: "" }]); }}>
+          <Button onClick={() => {
+            setRetoCreado(null); setNombre(""); setDescripcion("");
+            setPreguntas([{ texto: "", tipo: "multiple_choice", opciones: ["", "", "", ""], respuesta_correcta: "", explicacion: "", puntos: 10 }]);
+            setPalabrasSopa([{ palabra: "", pista: "" }, { palabra: "", pista: "" }, { palabra: "", pista: "" }]);
+            setPalabrasCrucigrama([{ palabra: "", pista: "" }, { palabra: "", pista: "" }, { palabra: "", pista: "" }]);
+          }}>
             Crear Otro Reto
           </Button>
         </div>
@@ -292,8 +232,7 @@ export function CreateChallengePage() {
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Volver
+          <ArrowLeft className="w-4 h-4" />Volver
         </Button>
         <div>
           <h1 className="text-xl font-bold">Crear Reto Personalizado</h1>
@@ -312,8 +251,7 @@ export function CreateChallengePage() {
         {/* Informacion general */}
         <div className="glass-card rounded-xl p-5 space-y-4">
           <h2 className="text-base font-semibold flex items-center gap-2">
-            <Zap className="w-4 h-4 text-primary" />
-            Informacion del Reto
+            <Zap className="w-4 h-4 text-primary" />Informacion del Reto
           </h2>
 
           <div className="grid sm:grid-cols-2 gap-4">
@@ -329,32 +267,34 @@ export function CreateChallengePage() {
 
             <div className="space-y-1.5">
               <Label>Dirigido a (Grado)</Label>
-              <Select value={modulo} onValueChange={setModulo}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1° de Bachillerato</SelectItem>
-                  <SelectItem value="2">2° de Bachillerato</SelectItem>
-                  <SelectItem value="3">3° de Bachillerato</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                value={modulo}
+                onChange={(e) => setModulo(e.target.value)}
+                className={selectCls}
+              >
+                <option value="1">1° de Bachillerato</option>
+                <option value="2">2° de Bachillerato</option>
+                <option value="3">3° de Bachillerato</option>
+              </select>
             </div>
 
             <div className="space-y-1.5">
               <Label>Tiempo Limite</Label>
-              <Select value={tiempoLimite} onValueChange={setTiempoLimite}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="120">2 minutos</SelectItem>
-                  <SelectItem value="300">5 minutos</SelectItem>
-                  <SelectItem value="600">10 minutos</SelectItem>
-                  <SelectItem value="900">15 minutos</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                value={tiempoLimite}
+                onChange={(e) => setTiempoLimite(e.target.value)}
+                className={selectCls}
+              >
+                <option value="120">2 minutos</option>
+                <option value="300">5 minutos</option>
+                <option value="600">10 minutos</option>
+                <option value="900">15 minutos</option>
+              </select>
             </div>
           </div>
         </div>
 
-        {/* Selector de tipo de juego */}
+        {/* Tipo de juego */}
         <div className="glass-card rounded-xl p-5 space-y-3">
           <h2 className="text-base font-semibold">Tipo de Juego</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -379,16 +319,13 @@ export function CreateChallengePage() {
           </div>
         </div>
 
-        {/* === FORMULARIO SEGUN TIPO DE JUEGO === */}
-
-        {/* Quiz / Codigo / Seguridad / Carrera Rapida */}
+        {/* Quiz / Codigo / Seguridad / Carrera */}
         {esJuegoConPreguntas && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold">Preguntas ({preguntas.length})</h2>
               <Button type="button" variant="outline" size="sm" onClick={addPregunta} className="gap-2">
-                <PlusCircle className="w-4 h-4" />
-                Agregar Pregunta
+                <PlusCircle className="w-4 h-4" />Agregar Pregunta
               </Button>
             </div>
 
@@ -420,27 +357,31 @@ export function CreateChallengePage() {
 
                   <div className="space-y-1.5">
                     <Label>Tipo de Pregunta</Label>
-                    <Select value={pregunta.tipo} onValueChange={(v) => updatePregunta(pIndex, "tipo", v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="multiple_choice">Opcion Multiple</SelectItem>
-                        <SelectItem value="true_false">Verdadero / Falso</SelectItem>
-                        {tipoJuego === "code_challenge" && <SelectItem value="code_completion">Completar Codigo</SelectItem>}
-                      </SelectContent>
-                    </Select>
+                    <select
+                      value={pregunta.tipo}
+                      onChange={(e) => updatePregunta(pIndex, "tipo", e.target.value)}
+                      className={selectCls}
+                    >
+                      <option value="multiple_choice">Opcion Multiple</option>
+                      <option value="true_false">Verdadero / Falso</option>
+                      {tipoJuego === "code_challenge" && (
+                        <option value="code_completion">Completar Codigo</option>
+                      )}
+                    </select>
                   </div>
 
                   <div className="space-y-1.5">
                     <Label>Puntos</Label>
-                    <Select value={pregunta.puntos.toString()} onValueChange={(v) => updatePregunta(pIndex, "puntos", parseInt(v))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="5">5 puntos</SelectItem>
-                        <SelectItem value="10">10 puntos</SelectItem>
-                        <SelectItem value="15">15 puntos</SelectItem>
-                        <SelectItem value="20">20 puntos</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <select
+                      value={pregunta.puntos.toString()}
+                      onChange={(e) => updatePregunta(pIndex, "puntos", parseInt(e.target.value))}
+                      className={selectCls}
+                    >
+                      <option value="5">5 puntos</option>
+                      <option value="10">10 puntos</option>
+                      <option value="15">15 puntos</option>
+                      <option value="20">20 puntos</option>
+                    </select>
                   </div>
                 </div>
 
@@ -452,7 +393,12 @@ export function CreateChallengePage() {
                         <div className="w-6 h-6 rounded-full bg-muted/50 border border-border/50 flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">
                           {String.fromCharCode(65 + oIndex)}
                         </div>
-                        <Input placeholder={`Opcion ${String.fromCharCode(65 + oIndex)}`} value={opcion} onChange={(e) => updateOpcion(pIndex, oIndex, e.target.value)} className="text-sm" />
+                        <Input
+                          placeholder={`Opcion ${String.fromCharCode(65 + oIndex)}`}
+                          value={opcion}
+                          onChange={(e) => updateOpcion(pIndex, oIndex, e.target.value)}
+                          className="text-sm"
+                        />
                       </div>
                     ))}
                   </div>
@@ -461,21 +407,33 @@ export function CreateChallengePage() {
                 <div className="space-y-1.5">
                   <Label>Respuesta Correcta</Label>
                   {pregunta.tipo === "true_false" ? (
-                    <Select value={pregunta.respuesta_correcta} onValueChange={(v) => updatePregunta(pIndex, "respuesta_correcta", v)}>
-                      <SelectTrigger><SelectValue placeholder="Selecciona la respuesta" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Verdadero">Verdadero</SelectItem>
-                        <SelectItem value="Falso">Falso</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <select
+                      value={pregunta.respuesta_correcta}
+                      onChange={(e) => updatePregunta(pIndex, "respuesta_correcta", e.target.value)}
+                      className={selectCls}
+                    >
+                      <option value="">— Selecciona la respuesta —</option>
+                      <option value="Verdadero">Verdadero</option>
+                      <option value="Falso">Falso</option>
+                    </select>
                   ) : (
-                    <Input placeholder="Escribe exactamente como aparece en las opciones" value={pregunta.respuesta_correcta} onChange={(e) => updatePregunta(pIndex, "respuesta_correcta", e.target.value)} className="text-sm" />
+                    <Input
+                      placeholder="Escribe exactamente como aparece en las opciones"
+                      value={pregunta.respuesta_correcta}
+                      onChange={(e) => updatePregunta(pIndex, "respuesta_correcta", e.target.value)}
+                      className="text-sm"
+                    />
                   )}
                 </div>
 
                 <div className="space-y-1.5">
                   <Label>Explicacion (opcional)</Label>
-                  <Input placeholder="Explica por que esta es la respuesta correcta..." value={pregunta.explicacion} onChange={(e) => updatePregunta(pIndex, "explicacion", e.target.value)} className="text-sm" />
+                  <Input
+                    placeholder="Explica por que esta es la respuesta correcta..."
+                    value={pregunta.explicacion}
+                    onChange={(e) => updatePregunta(pIndex, "explicacion", e.target.value)}
+                    className="text-sm"
+                  />
                 </div>
               </div>
             ))}
@@ -491,11 +449,9 @@ export function CreateChallengePage() {
                 <p className="text-xs text-muted-foreground mt-0.5">Minimo 3 palabras. Sin espacios, solo letras.</p>
               </div>
               <Button type="button" variant="outline" size="sm" onClick={addPalabraSopa} className="gap-2">
-                <PlusCircle className="w-4 h-4" />
-                Agregar
+                <PlusCircle className="w-4 h-4" />Agregar
               </Button>
             </div>
-
             {palabrasSopa.map((item, i) => (
               <div key={i} className="glass-card rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -529,11 +485,9 @@ export function CreateChallengePage() {
                 <p className="text-xs text-muted-foreground mt-0.5">Cada palabra necesita una pista. Minimo 3.</p>
               </div>
               <Button type="button" variant="outline" size="sm" onClick={addPalabraCrucigrama} className="gap-2">
-                <PlusCircle className="w-4 h-4" />
-                Agregar
+                <PlusCircle className="w-4 h-4" />Agregar
               </Button>
             </div>
-
             {palabrasCrucigrama.map((item, i) => (
               <div key={i} className="glass-card rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -565,7 +519,9 @@ export function CreateChallengePage() {
             </p>
           )}
           <Button type="submit" size="lg" className="w-full gap-2 neon-border" disabled={loading}>
-            {loading ? <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <PlusCircle className="w-5 h-5" />}
+            {loading
+              ? <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              : <PlusCircle className="w-5 h-5" />}
             {loading ? "Creando Reto..." : "Publicar Reto"}
           </Button>
         </div>
