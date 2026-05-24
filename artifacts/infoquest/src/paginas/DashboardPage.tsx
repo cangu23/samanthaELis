@@ -1,7 +1,6 @@
 // Dashboard principal: vista diferente para estudiantes y docentes
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
 import { useAuth } from "@/contextos/AuthContext";
 import { Button } from "@/componentes/interfaz/button";
 import { Badge } from "@/componentes/interfaz/badge";
@@ -22,7 +21,6 @@ import {
   Trash2,
   Link2,
 } from "lucide-react";
-import { cn } from "@/utilidades/utils";
 
 // Tarjeta de estadistica del dashboard
 function StatCard({
@@ -30,21 +28,14 @@ function StatCard({
   label,
   value,
   color,
-  delay,
 }: {
   icon: React.ElementType;
   label: string;
   value: string | number;
   color: string;
-  delay: number;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className="glass-card rounded-xl p-4"
-    >
+    <div className="glass-card rounded-xl p-4">
       <div className="flex items-center gap-3">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -59,7 +50,7 @@ function StatCard({
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -85,7 +76,6 @@ function StudentDashboard() {
     { id: number; id_reto: number; progreso_actual: number; total_preguntas: number }[]
   >([]);
 
-  // Carga el modulo del grado del estudiante
   useEffect(() => {
     if (!user?.grado_bachillerato) return;
     fetch(`/api/modules?anio=${user.grado_bachillerato}`, {
@@ -96,13 +86,11 @@ function StudentDashboard() {
         const mod = Array.isArray(data) ? data[0] : data;
         if (mod?.id) {
           setModule(mod);
-          // Carga niveles
           fetch(`/api/modules/${mod.id}/levels`, {
             headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
           })
             .then((r) => r.json())
             .then((lvls) => setLevels(Array.isArray(lvls) ? lvls : []));
-          // Carga retos
           fetch(`/api/challenges?id_modulo=${mod.id}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
           })
@@ -112,7 +100,6 @@ function StudentDashboard() {
       })
       .catch(console.error);
 
-    // Carga intentos guardados
     fetch("/api/saved-attempts", {
       headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
     })
@@ -140,13 +127,9 @@ function StudentDashboard() {
   if (!user) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       {/* Bienvenida */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-r from-primary/10 to-secondary/5 border border-primary/20"
-      >
+      <div className="flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-r from-primary/10 to-secondary/5 border border-primary/20">
         <RobotMascot size="sm" mood="happy" />
         <div className="flex-1">
           <h1 className="text-xl font-bold">
@@ -168,23 +151,19 @@ function StudentDashboard() {
           </div>
           <div className="text-xs text-muted-foreground">puntos totales</div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Estadisticas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard icon={Trophy} label="Puntos" value={user.puntos_totales} color="#0EA5E9" delay={0.1} />
-        <StatCard icon={Zap} label="Retos" value={user.retos_completados} color="#22C55E" delay={0.15} />
-        <StatCard icon={Flame} label="Racha" value={`${user.racha_dias}d`} color="#F59E0B" delay={0.2} />
-        <StatCard icon={Star} label="Grado" value={`${user.grado_bachillerato}°`} color="#A855F7" delay={0.25} />
+        <StatCard icon={Trophy} label="Puntos" value={user.puntos_totales} color="#0EA5E9" />
+        <StatCard icon={Zap} label="Retos" value={user.retos_completados} color="#22C55E" />
+        <StatCard icon={Flame} label="Racha" value={`${user.racha_dias}d`} color="#F59E0B" />
+        <StatCard icon={Star} label="Grado" value={`${user.grado_bachillerato}°`} color="#A855F7" />
       </div>
 
       {/* Intentos guardados (retos pendientes) */}
       {savedAttempts.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div>
           <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
             <Clock className="w-4 h-4 text-yellow-400" />
             Retos Pendientes
@@ -219,15 +198,11 @@ function StudentDashboard() {
               );
             })}
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Retos disponibles */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-      >
+      <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold flex items-center gap-2">
             <Zap className="w-4 h-4 text-primary" />
@@ -246,14 +221,11 @@ function StudentDashboard() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 gap-3">
-            {challenges.slice(0, 4).map((challenge, i) => {
+            {challenges.slice(0, 4).map((challenge) => {
               const color = tipoColors[challenge.tipo_juego] || "#0EA5E9";
               return (
-                <motion.div
+                <div
                   key={challenge.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + i * 0.05 }}
                   className="p-4 rounded-xl bg-card/60 border border-border/50 hover:border-primary/30 transition-colors"
                 >
                   <div className="flex items-start gap-3">
@@ -272,10 +244,7 @@ function StudentDashboard() {
                         <Badge
                           variant="outline"
                           className="text-xs px-1.5 py-0"
-                          style={{
-                            borderColor: `${color}40`,
-                            color: color,
-                          }}
+                          style={{ borderColor: `${color}40`, color }}
                         >
                           {tipoLabels[challenge.tipo_juego] || challenge.tipo_juego}
                         </Badge>
@@ -292,26 +261,22 @@ function StudentDashboard() {
                       Iniciar Reto
                     </Button>
                   </Link>
-                </motion.div>
+                </div>
               );
             })}
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Niveles del modulo */}
       {levels.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
+        <div>
           <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-secondary" />
             Tu Progreso
           </h2>
           <div className="space-y-2">
-            {levels.map((level, i) => (
+            {levels.map((level) => (
               <div
                 key={level.id}
                 className="flex items-center gap-3 p-3 rounded-xl bg-card/50 border border-border/40"
@@ -327,7 +292,7 @@ function StudentDashboard() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );
@@ -361,7 +326,6 @@ function TeacherDashboard() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [copiado, setCopiado] = useState<number | null>(null);
 
-  // Carga estadisticas generales y retos propios
   useEffect(() => {
     Promise.all([
       fetch("/api/ranking", { headers }).then((r) => r.json()),
@@ -382,7 +346,6 @@ function TeacherDashboard() {
               )
             : 0,
         });
-        // Solo muestra los retos creados por este docente
         const propios = Array.isArray(custom)
           ? custom.filter((r: RetoPersonalizado & { docente?: { id: number } }) => r.id_docente === user?.id || r.docente?.id === user?.id)
           : [];
@@ -413,13 +376,9 @@ function TeacherDashboard() {
   if (!user) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       {/* Bienvenida docente */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-r from-secondary/10 to-accent/5 border border-secondary/20"
-      >
+      <div className="flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-r from-secondary/10 to-accent/5 border border-secondary/20">
         <div className="w-14 h-14 rounded-2xl bg-secondary/20 border border-secondary/40 flex items-center justify-center">
           <Users className="w-7 h-7 text-secondary" />
         </div>
@@ -432,22 +391,18 @@ function TeacherDashboard() {
             Gestiona retos, revisa el desempeno y da retroalimentacion a tus estudiantes
           </p>
         </div>
-      </motion.div>
+      </div>
 
       {/* Estadisticas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard icon={Users} label="Estudiantes" value={stats.totalStudents} color="#A855F7" delay={0.1} />
-        <StatCard icon={Zap} label="Retos" value={stats.totalChallenges} color="#0EA5E9" delay={0.15} />
-        <StatCard icon={TrendingUp} label="Resultados" value={stats.totalResults} color="#22C55E" delay={0.2} />
-        <StatCard icon={Star} label="Prom. Puntos" value={stats.avgScore} color="#F59E0B" delay={0.25} />
+        <StatCard icon={Users} label="Estudiantes" value={stats.totalStudents} color="#A855F7" />
+        <StatCard icon={Zap} label="Retos" value={stats.totalChallenges} color="#0EA5E9" />
+        <StatCard icon={TrendingUp} label="Resultados" value={stats.totalResults} color="#22C55E" />
+        <StatCard icon={Star} label="Prom. Puntos" value={stats.avgScore} color="#F59E0B" />
       </div>
 
       {/* Acciones rapidas docente */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
+      <div>
         <h2 className="text-base font-semibold mb-3">Acciones Rapidas</h2>
         <div className="grid sm:grid-cols-3 gap-3">
           {[
@@ -474,10 +429,7 @@ function TeacherDashboard() {
             },
           ].map(({ href, icon: Icon, label, desc, color }) => (
             <Link key={href} href={href}>
-              <motion.div
-                whileHover={{ y: -3, scale: 1.02 }}
-                className="p-4 rounded-xl bg-card/60 border border-border/50 hover:border-primary/30 transition-colors cursor-pointer"
-              >
+              <div className="p-4 rounded-xl bg-card/60 border border-border/50 hover:border-primary/30 hover:scale-[1.02] transition-all cursor-pointer">
                 <div
                   className="w-9 h-9 rounded-lg flex items-center justify-center mb-3"
                   style={{ backgroundColor: `${color}20`, border: `1px solid ${color}40` }}
@@ -486,11 +438,11 @@ function TeacherDashboard() {
                 </div>
                 <div className="text-sm font-semibold">{label}</div>
                 <div className="text-xs text-muted-foreground mt-1">{desc}</div>
-              </motion.div>
+              </div>
             </Link>
           ))}
         </div>
-      </motion.div>
+      </div>
 
       {/* Mis Retos Personalizados */}
       <div>
@@ -534,7 +486,6 @@ function TeacherDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {/* Copiar link */}
                     <button
                       onClick={() => copiarLink(reto.id)}
                       title="Copiar link del reto"
@@ -547,7 +498,6 @@ function TeacherDashboard() {
                       )}
                     </button>
 
-                    {/* Eliminar */}
                     {isConfirming ? (
                       <div className="flex items-center gap-1">
                         <button
