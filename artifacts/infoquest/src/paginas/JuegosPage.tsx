@@ -24,14 +24,14 @@ interface Reto {
   docente_nombre?: string | null;
 }
 
-const TIPO_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType; emoji: string }> = {
-  quiz:             { label: "Quiz",            color: "#0EA5E9", icon: BookOpen,    emoji: "🧠" },
-  code_challenge:   { label: "Código",          color: "#A855F7", icon: Code2,       emoji: "💻" },
-  security_puzzle:  { label: "Seguridad",       color: "#22C55E", icon: ShieldCheck, emoji: "🛡️" },
-  drag_drop:        { label: "Drag & Drop",     color: "#F59E0B", icon: Grid3X3,     emoji: "🎯" },
-  speed_race:       { label: "Velocidad",       color: "#EF4444", icon: Wind,        emoji: "⚡" },
-  word_search:      { label: "Sopa de Letras",  color: "#06B6D4", icon: AlignJustify,emoji: "🔤" },
-  crossword:        { label: "Crucigrama",      color: "#8B5CF6", icon: Puzzle,      emoji: "🧩" },
+const TIPO_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  quiz:             { label: "Quiz",            color: "#0EA5E9", icon: BookOpen    },
+  code_challenge:   { label: "Código",          color: "#A855F7", icon: Code2       },
+  security_puzzle:  { label: "Seguridad",       color: "#22C55E", icon: ShieldCheck },
+  drag_drop:        { label: "Drag & Drop",     color: "#F59E0B", icon: Grid3X3     },
+  speed_race:       { label: "Velocidad",       color: "#EF4444", icon: Wind        },
+  word_search:      { label: "Sopa de Letras",  color: "#06B6D4", icon: AlignJustify},
+  crossword:        { label: "Crucigrama",      color: "#8B5CF6", icon: Puzzle      },
 };
 
 const ALL_TYPES = Object.keys(TIPO_CONFIG);
@@ -170,7 +170,7 @@ export function JuegosPage() {
                 borderColor: active ? `${cfg.color}50` : undefined,
               }}
             >
-              {cfg.emoji} {cfg.label} ({count})
+              {cfg.label} ({count})
             </button>
           );
         })}
@@ -189,7 +189,7 @@ export function JuegosPage() {
 
       {/* Retos agrupados por tipo */}
       {Object.entries(porTipo).map(([tipo, lista]) => {
-        const cfg = TIPO_CONFIG[tipo] ?? { label: tipo, color: "#888", icon: Zap, emoji: "🎮" };
+        const cfg = TIPO_CONFIG[tipo] ?? { label: tipo, color: "#888", icon: Zap };
         const Icon = cfg.icon;
         return (
           <div key={tipo} className="space-y-3">
@@ -202,7 +202,7 @@ export function JuegosPage() {
                 <Icon className="w-4 h-4" style={{ color: cfg.color }} />
               </div>
               <h2 className="font-semibold font-orbitron text-sm" style={{ color: cfg.color }}>
-                {cfg.emoji} {cfg.label}
+                {cfg.label}
               </h2>
               <span className="text-xs text-muted-foreground">({lista.length} reto{lista.length !== 1 ? "s" : ""})</span>
             </div>
