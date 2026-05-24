@@ -133,11 +133,6 @@ export function LoginPage() {
           </div>
         </div>
 
-        {/* Cuenta de prueba */}
-        <div className="mt-4 p-3 rounded-xl border border-border/30 bg-muted/20 text-xs text-muted-foreground text-center">
-          <p className="font-medium mb-1 text-foreground/70">Cuenta de prueba:</p>
-          <p>Usuario: <span className="font-mono-code text-primary">docente1</span> / Clave: <span className="font-mono-code text-primary">123456</span></p>
-        </div>
       </div>
     </div>
   );
