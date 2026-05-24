@@ -1,7 +1,6 @@
 // Pagina de exploración de juegos: muestra todos los retos disponibles con búsqueda y filtros
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
 import { useAuth } from "@/contextos/AuthContext";
 import { Badge } from "@/componentes/interfaz/badge";
 import {
@@ -21,6 +20,8 @@ interface Reto {
   id_nivel: number;
   modulo: { nombre: string; color: string } | null;
   nivel: { nombre: string } | null;
+  is_custom?: boolean;
+  docente_nombre?: string | null;
 }
 
 const TIPO_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType; emoji: string }> = {
@@ -208,69 +209,74 @@ export function JuegosPage() {
 
             {/* Tarjetas de retos */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {lista.map((reto, i) => (
-                <motion.div
-                  key={reto.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  <Link href={`/challenge/${reto.id}`}>
-                    <div
-                      className="group p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
-                      style={{
-                        backgroundColor: `${cfg.color}08`,
-                        borderColor: `${cfg.color}25`,
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLDivElement).style.borderColor = `${cfg.color}60`;
-                        (e.currentTarget as HTMLDivElement).style.backgroundColor = `${cfg.color}15`;
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLDivElement).style.borderColor = `${cfg.color}25`;
-                        (e.currentTarget as HTMLDivElement).style.backgroundColor = `${cfg.color}08`;
-                      }}
-                    >
-                      {/* Nombre del reto */}
+              {lista.map((reto) => (
+                <Link key={reto.id} href={`/challenge/${reto.id}`}>
+                  <div
+                    className="group p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
+                    style={{
+                      backgroundColor: `${cfg.color}08`,
+                      borderColor: `${cfg.color}25`,
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = `${cfg.color}60`;
+                      (e.currentTarget as HTMLDivElement).style.backgroundColor = `${cfg.color}15`;
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = `${cfg.color}25`;
+                      (e.currentTarget as HTMLDivElement).style.backgroundColor = `${cfg.color}08`;
+                    }}
+                  >
+                    {/* Nombre del reto */}
+                    <div className="flex items-start justify-between gap-2">
                       <h3 className="font-semibold text-sm text-foreground group-hover:text-white transition-colors line-clamp-2">
                         {reto.nombre}
                       </h3>
-
-                      {/* Módulo y nivel */}
-                      {reto.modulo && (
-                        <p className="text-xs text-muted-foreground mt-1 truncate">
-                          📚 {reto.modulo.nombre}
-                          {reto.nivel && ` · ${reto.nivel.nombre}`}
-                        </p>
+                      {reto.is_custom && (
+                        <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                          Docente
+                        </span>
                       )}
-
-                      {/* Stats */}
-                      <div className="flex items-center gap-3 mt-3">
-                        <span
-                          className="flex items-center gap-1 text-xs font-medium"
-                          style={{ color: cfg.color }}
-                        >
-                          <Star className="w-3 h-3" />
-                          {reto.puntos_maximos} pts
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          {formatTime(reto.tiempo_limite)}
-                        </span>
-                        <Badge
-                          className="ml-auto text-xs px-1.5 py-0"
-                          style={{
-                            backgroundColor: `${cfg.color}20`,
-                            color: cfg.color,
-                            borderColor: `${cfg.color}40`,
-                          }}
-                        >
-                          Jugar →
-                        </Badge>
-                      </div>
                     </div>
-                  </Link>
-                </motion.div>
+
+                    {/* Módulo y nivel */}
+                    {reto.modulo && (
+                      <p className="text-xs text-muted-foreground mt-1 truncate">
+                        📚 {reto.modulo.nombre}
+                        {reto.nivel && ` · ${reto.nivel.nombre}`}
+                      </p>
+                    )}
+                    {reto.is_custom && reto.docente_nombre && (
+                      <p className="text-xs text-purple-400/70 mt-0.5 truncate">
+                        👨‍🏫 {reto.docente_nombre}
+                      </p>
+                    )}
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-3 mt-3">
+                      <span
+                        className="flex items-center gap-1 text-xs font-medium"
+                        style={{ color: cfg.color }}
+                      >
+                        <Star className="w-3 h-3" />
+                        {reto.puntos_maximos} pts
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        {formatTime(reto.tiempo_limite)}
+                      </span>
+                      <Badge
+                        className="ml-auto text-xs px-1.5 py-0"
+                        style={{
+                          backgroundColor: `${cfg.color}20`,
+                          color: cfg.color,
+                          borderColor: `${cfg.color}40`,
+                        }}
+                      >
+                        Jugar →
+                      </Badge>
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>

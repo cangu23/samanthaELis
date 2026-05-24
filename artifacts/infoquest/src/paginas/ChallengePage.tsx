@@ -1,7 +1,6 @@
 // Motor de juego: quiz, speed_race, code_challenge, security_puzzle, word_search, crossword, drag_drop
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocation, useParams } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contextos/AuthContext";
 import { Button } from "@/componentes/interfaz/button";
 import { Progress } from "@/componentes/interfaz/progress";
@@ -61,25 +60,48 @@ export function ChallengePage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Carga el reto y sus preguntas
+  // IDs negativos = retos personalizados del docente; positivos = predefinidos
   useEffect(() => {
     if (!params.id) return;
-    fetch(`/api/challenges/${params.id}`, { headers })
-      .then((r) => r.json())
-      .then((data) => {
-        setReto(data);
-        setTimeLeft(data.tiempo_limite);
-        setTotalTime(data.tiempo_limite);
-      })
-      .catch(console.error);
+    const rawId = Number(params.id);
+    const isCustom = rawId < 0;
+    const realId = Math.abs(rawId);
 
-    fetch(`/api/challenges/${params.id}/questions`, { headers })
-      .then((r) => r.json())
-      .then((data) => {
-        const qs = Array.isArray(data) ? data : data.questions || [];
-        setPreguntas(qs);
-        setGameState("ready");
-      })
-      .catch(console.error);
+    if (isCustom) {
+      // Reto personalizado: un solo fetch devuelve todo
+      fetch(`/api/challenges/custom/${realId}`, { headers })
+        .then((r) => r.json())
+        .then((data) => {
+          setReto({ ...data, id: rawId });
+          setTimeLeft(data.tiempo_limite);
+          setTotalTime(data.tiempo_limite);
+          const qs = Array.isArray(data.preguntas) ? data.preguntas.map((p: { opciones?: string | string[]; [key: string]: unknown }) => ({
+            ...p,
+            opciones: typeof p.opciones === "string" ? JSON.parse(p.opciones) : (p.opciones || []),
+          })) : [];
+          setPreguntas(qs);
+          setGameState("ready");
+        })
+        .catch(console.error);
+    } else {
+      fetch(`/api/challenges/${realId}`, { headers })
+        .then((r) => r.json())
+        .then((data) => {
+          setReto(data);
+          setTimeLeft(data.tiempo_limite);
+          setTotalTime(data.tiempo_limite);
+        })
+        .catch(console.error);
+
+      fetch(`/api/challenges/${realId}/questions`, { headers })
+        .then((r) => r.json())
+        .then((data) => {
+          const qs = Array.isArray(data) ? data : data.questions || [];
+          setPreguntas(qs);
+          setGameState("ready");
+        })
+        .catch(console.error);
+    }
   }, [params.id]);
 
   // Timer countdown
@@ -131,19 +153,34 @@ export function ChallengePage() {
     stopTimer();
 
     const pregunta = preguntas[currentIndex];
+    const rawId = Number(params.id);
+    const isCustom = rawId < 0;
 
-    // Verifica la respuesta en el servidor
     try {
-      const res = await fetch(`/api/challenges/${reto!.id}/check-answer`, {
-        method: "POST",
-        headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ pregunta_id: pregunta.id, respuesta: option }),
-      });
-      const data = await res.json();
-      const correct = data.correcta;
-      const pointsEarned = correct ? pregunta.puntos : 0;
+      let correct: boolean;
+      let explanation = "";
+      let pointsEarned = 0;
 
-      setFeedback({ correct, explanation: data.explicacion || "" });
+      if (isCustom) {
+        // Para retos personalizados, verificar localmente con la respuesta_correcta
+        const preguntaConRespuesta = pregunta as Pregunta & { respuesta_correcta?: string; explicacion?: string };
+        correct = (preguntaConRespuesta.respuesta_correcta ?? "").trim().toLowerCase() === option.trim().toLowerCase();
+        explanation = preguntaConRespuesta.explicacion || "";
+        pointsEarned = correct ? pregunta.puntos : 0;
+      } else {
+        // Para retos predefinidos, verificar en el servidor
+        const res = await fetch(`/api/challenges/${rawId}/check-answer`, {
+          method: "POST",
+          headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify({ pregunta_id: pregunta.id, respuesta: option }),
+        });
+        const data = await res.json();
+        correct = data.correcta;
+        explanation = data.explicacion || "";
+        pointsEarned = correct ? pregunta.puntos : 0;
+      }
+
+      setFeedback({ correct, explanation });
       if (correct) {
         setScore((prev) => prev + pointsEarned);
         setCorrectCount((prev) => prev + 1);
@@ -240,11 +277,7 @@ export function ChallengePage() {
           Volver
         </Button>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="glass-card rounded-2xl p-8 text-center space-y-6"
-        >
+        <div className="glass-card rounded-2xl p-8 text-center space-y-6 page-enter">
           <RobotMascot size="md" mood="excited" className="mx-auto" />
 
           <div>
@@ -276,7 +309,7 @@ export function ChallengePage() {
             <Zap className="w-5 h-5" />
             ¡Comenzar Reto!
           </Button>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -289,11 +322,7 @@ export function ChallengePage() {
 
     return (
       <div className="max-w-xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="glass-card rounded-2xl p-8 text-center space-y-6"
-        >
+        <div className="glass-card rounded-2xl p-8 text-center space-y-6 page-enter">
           <RobotMascot size="md" mood={mood} className="mx-auto" />
 
           <div>
@@ -336,7 +365,7 @@ export function ChallengePage() {
               Ver Ranking
             </Button>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -446,13 +475,7 @@ export function ChallengePage() {
         </div>
 
         {/* Pregunta */}
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -30 }}
-          className="glass-card rounded-2xl p-6"
-        >
+        <div key={currentIndex} className="glass-card rounded-2xl p-6">
           <div className="flex items-start gap-2 mb-5">
             <Badge variant="outline" className="text-xs flex-shrink-0 mt-0.5">
               {pregunta.tipo === "true_false" ? "Verdadero/Falso" :
@@ -477,16 +500,14 @@ export function ChallengePage() {
               const isWrong = !feedback?.correct && isSelected;
 
               return (
-                <motion.button
+                <button
                   key={opcion}
                   onClick={() => handleAnswer(opcion)}
                   disabled={selectedOption !== null}
-                  whileHover={selectedOption === null ? { scale: 1.02 } : {}}
-                  whileTap={selectedOption === null ? { scale: 0.98 } : {}}
                   className={cn(
                     "p-3 rounded-xl border text-sm font-medium text-left transition-all duration-200",
                     selectedOption === null
-                      ? "bg-muted/30 border-border/60 hover:bg-primary/10 hover:border-primary/40 cursor-pointer"
+                      ? "bg-muted/30 border-border/60 hover:bg-primary/10 hover:border-primary/40 hover:scale-[1.02] cursor-pointer"
                       : isCorrect
                         ? "bg-accent/20 border-accent/60 text-accent"
                         : isWrong
@@ -501,66 +522,56 @@ export function ChallengePage() {
                       {opcion}
                     </span>
                   </div>
-                </motion.button>
+                </button>
               );
             })}
           </div>
 
           {/* Retroalimentacion despues de responder */}
-          <AnimatePresence>
-            {feedback && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className={cn(
-                  "mt-4 p-3 rounded-xl text-sm",
-                  feedback.correct
-                    ? "bg-accent/10 border border-accent/30 text-accent"
-                    : "bg-destructive/10 border border-destructive/30 text-destructive"
+          {feedback && (
+            <div
+              className={cn(
+                "mt-4 p-3 rounded-xl text-sm border",
+                feedback.correct
+                  ? "bg-accent/10 border-accent/30 text-accent"
+                  : "bg-destructive/10 border-destructive/30 text-destructive"
+              )}
+            >
+              <div className="flex items-center gap-2 font-semibold mb-1">
+                {feedback.correct ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    ¡Correcto! +{pregunta.puntos} puntos
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4" />
+                    Incorrecto
+                  </>
                 )}
-              >
-                <div className="flex items-center gap-2 font-semibold mb-1">
-                  {feedback.correct ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      ¡Correcto! +{pregunta.puntos} puntos
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-4 h-4" />
-                      Incorrecto
-                    </>
-                  )}
-                </div>
-                {feedback.explanation && (
-                  <p className="text-xs opacity-80">{feedback.explanation}</p>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+              </div>
+              {feedback.explanation && (
+                <p className="text-xs opacity-80">{feedback.explanation}</p>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Boton siguiente */}
         {feedback && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <Button onClick={handleNext} className="w-full gap-2">
-              {currentIndex + 1 >= preguntas.length ? (
-                <>
-                  <Trophy className="w-4 h-4" />
-                  Ver Resultado
-                </>
-              ) : (
-                <>
-                  Siguiente Pregunta
-                  <ChevronRight className="w-4 h-4" />
-                </>
-              )}
-            </Button>
-          </motion.div>
+          <Button onClick={handleNext} className="w-full gap-2">
+            {currentIndex + 1 >= preguntas.length ? (
+              <>
+                <Trophy className="w-4 h-4" />
+                Ver Resultado
+              </>
+            ) : (
+              <>
+                Siguiente Pregunta
+                <ChevronRight className="w-4 h-4" />
+              </>
+            )}
+          </Button>
         )}
       </div>
     );

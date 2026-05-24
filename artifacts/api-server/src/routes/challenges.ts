@@ -16,12 +16,14 @@ import { requireAuth, requireDocente, type AuthRequest } from "../lib/auth";
 
 const router = Router();
 
-// GET /challenges - Obtener todos los retos predefinidos activos (soporta filtro ?id_modulo=N)
+// GET /challenges - Obtener todos los retos (predefinidos + personalizados)
+// Los retos personalizados tienen ID negativo para distinguirlos en el cliente
 router.get("/challenges", requireAuth, async (req, res) => {
   try {
     const idModulo = req.query["id_modulo"] ? Number(req.query["id_modulo"]) : null;
 
-    const retos = await db
+    // Retos predefinidos
+    const retosPredef = await db
       .select()
       .from(retosTable)
       .where(
@@ -30,18 +32,67 @@ router.get("/challenges", requireAuth, async (req, res) => {
           : eq(retosTable.activo, true)
       );
 
-    // Agrega informacion de modulo y nivel a cada reto
-    const retosConInfo = await Promise.all(
-      retos.map(async (reto) => {
+    const predefinidosConInfo = await Promise.all(
+      retosPredef.map(async (reto) => {
         const [modulo] = await db.select().from(modulosTable).where(eq(modulosTable.id, reto.id_modulo));
         const [nivel] = await db.select().from(nivelesTable).where(eq(nivelesTable.id, reto.id_nivel));
-        return { ...reto, modulo: modulo || null, nivel: nivel || null };
+        return { ...reto, modulo: modulo || null, nivel: nivel || null, is_custom: false };
+      })
+    );
+
+    // Retos personalizados (ID negativo para identificarlos en el cliente)
+    const retosCustom = await db
+      .select()
+      .from(retosPersonalizadosTable)
+      .where(
+        idModulo
+          ? and(eq(retosPersonalizadosTable.activo, true), eq(retosPersonalizadosTable.id_modulo, idModulo))
+          : eq(retosPersonalizadosTable.activo, true)
+      );
+
+    const customConInfo = await Promise.all(
+      retosCustom.map(async (reto) => {
+        const [docente] = await db
+          .select({ nombre: perfilesTable.nombre })
+          .from(perfilesTable)
+          .where(eq(perfilesTable.id, reto.id_docente));
+        const [modulo] = await db.select().from(modulosTable).where(eq(modulosTable.id, reto.id_modulo));
+        const [nivel] = await db.select().from(nivelesTable).where(eq(nivelesTable.id, reto.id_nivel));
+        return { ...reto, id: -reto.id, modulo: modulo || null, nivel: nivel || null, is_custom: true, docente_nombre: docente?.nombre || null };
+      })
+    );
+
+    res.json([...predefinidosConInfo, ...customConInfo]);
+  } catch (err) {
+    req.log.error({ err }, "Error al obtener retos");
+    res.status(500).json({ error: "server_error", message: "Error interno" });
+  }
+});
+
+// GET /challenges/custom - Obtener todos los retos personalizados
+// IMPORTANTE: esta ruta debe estar ANTES de /challenges/:challengeId
+router.get("/challenges/custom", requireAuth, async (req, res) => {
+  try {
+    const retos = await db
+      .select()
+      .from(retosPersonalizadosTable)
+      .where(eq(retosPersonalizadosTable.activo, true));
+
+    const retosConInfo = await Promise.all(
+      retos.map(async (reto) => {
+        const [docente] = await db
+          .select({ id: perfilesTable.id, nombre: perfilesTable.nombre, usuario: perfilesTable.usuario, rol: perfilesTable.rol })
+          .from(perfilesTable)
+          .where(eq(perfilesTable.id, reto.id_docente));
+        const [modulo] = await db.select().from(modulosTable).where(eq(modulosTable.id, reto.id_modulo));
+        const [nivel] = await db.select().from(nivelesTable).where(eq(nivelesTable.id, reto.id_nivel));
+        return { ...reto, docente: docente || null, modulo: modulo || null, nivel: nivel || null };
       })
     );
 
     res.json(retosConInfo);
   } catch (err) {
-    req.log.error({ err }, "Error al obtener retos");
+    req.log.error({ err }, "Error al obtener retos personalizados");
     res.status(500).json({ error: "server_error", message: "Error interno" });
   }
 });
@@ -149,33 +200,6 @@ router.post("/challenges/:challengeId/check-answer", requireAuth, async (req, re
     });
   } catch (err) {
     req.log.error({ err }, "Error al verificar respuesta");
-    res.status(500).json({ error: "server_error", message: "Error interno" });
-  }
-});
-
-// GET /challenges/custom - Obtener todos los retos personalizados
-router.get("/challenges/custom", requireAuth, async (req, res) => {
-  try {
-    const retos = await db
-      .select()
-      .from(retosPersonalizadosTable)
-      .where(eq(retosPersonalizadosTable.activo, true));
-
-    const retosConInfo = await Promise.all(
-      retos.map(async (reto) => {
-        const [docente] = await db
-          .select({ id: perfilesTable.id, nombre: perfilesTable.nombre, usuario: perfilesTable.usuario, rol: perfilesTable.rol })
-          .from(perfilesTable)
-          .where(eq(perfilesTable.id, reto.id_docente));
-        const [modulo] = await db.select().from(modulosTable).where(eq(modulosTable.id, reto.id_modulo));
-        const [nivel] = await db.select().from(nivelesTable).where(eq(nivelesTable.id, reto.id_nivel));
-        return { ...reto, docente: docente || null, modulo: modulo || null, nivel: nivel || null };
-      })
-    );
-
-    res.json(retosConInfo);
-  } catch (err) {
-    req.log.error({ err }, "Error al obtener retos personalizados");
     res.status(500).json({ error: "server_error", message: "Error interno" });
   }
 });

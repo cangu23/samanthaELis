@@ -156,7 +156,8 @@ export function CreateChallengePage() {
   };
 
   // --- Copiar link ---
-  const linkReto = retoCreado ? `${window.location.origin}/challenge/${retoCreado.id}` : "";
+  // IDs negativos = retos personalizados en la plataforma
+  const linkReto = retoCreado ? `${window.location.origin}/challenge/-${retoCreado.id}` : "";
   const copiarLink = async () => {
     await navigator.clipboard.writeText(linkReto);
     setCopiado(true);

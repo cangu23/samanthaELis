@@ -160,7 +160,7 @@ export function RankingPage() {
                   className={cn("rounded-full flex items-center justify-center text-white font-bold mb-1.5 ring-2", tier.ring,
                     isFirst ? "w-16 h-16 text-2xl" : "w-12 h-12 text-base"
                   )}
-                  style={{ background: `linear-gradient(135deg, ${tier.color}80, ${tier.color}40)`, ringColor: tier.color }}
+                  style={{ background: `linear-gradient(135deg, ${tier.color}80, ${tier.color}40)` }}
                 >
                   {item.nombre?.charAt(0)?.toUpperCase() ?? "?"}
                 </div>
