@@ -1,6 +1,5 @@
 // Barra de navegacion principal - visible en todas las paginas autenticadas
 import { Link, useLocation } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useAuth } from "@/contextos/AuthContext";
 import { Button } from "@/componentes/interfaz/button";
@@ -58,17 +57,14 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/dashboard">
-            <motion.div
-              className="flex items-center gap-2 cursor-pointer"
-              whileHover={{ scale: 1.03 }}
-            >
+            <div className="flex items-center gap-2 cursor-pointer hover:scale-[1.03] transition-transform">
               <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center">
                 <Zap className="w-4 h-4 text-primary" />
               </div>
               <span className="font-orbitron text-lg font-bold text-foreground hidden sm:block">
                 Cere<span className="text-primary">brito</span>
               </span>
-            </motion.div>
+            </div>
           </Link>
 
           {/* Links de navegacion - desktop */}
@@ -77,19 +73,17 @@ export function Navbar() {
               const active = location === href || location.startsWith(href + "/");
               return (
                 <Link key={href} href={href}>
-                  <motion.button
+                  <button
                     className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hover:scale-[1.03] active:scale-[0.97]",
                       active
                         ? "bg-primary/15 text-primary border border-primary/30"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     )}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
                   >
                     <Icon className="w-4 h-4" />
                     {label}
-                  </motion.button>
+                  </button>
                 </Link>
               );
             })}
@@ -108,11 +102,7 @@ export function Navbar() {
             {/* Menu de perfil */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <motion.button
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                >
+                <button className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors hover:scale-[1.03] active:scale-[0.97]">
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-white">
                     {user.nombre.charAt(0).toUpperCase()}
                   </div>
@@ -120,7 +110,7 @@ export function Navbar() {
                     {user.nombre.split(" ")[0]}
                   </span>
                   <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-                </motion.button>
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <div className="px-3 py-2">
@@ -166,47 +156,39 @@ export function Navbar() {
       </div>
 
       {/* Menu movil */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="md:hidden overflow-hidden border-t border-border/50 bg-background/95"
-          >
-            <div className="px-4 py-3 flex flex-col gap-1">
-              {navLinks.map(({ href, label, icon: Icon }) => {
-                const active = location === href;
-                return (
-                  <Link key={href} href={href} onClick={() => setMobileOpen(false)}>
-                    <button
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                        active
-                          ? "bg-primary/15 text-primary"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                      )}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {label}
-                    </button>
-                  </Link>
-                );
-              })}
-              <div className="mt-2 pt-2 border-t border-border/50">
-                <button
-                  onClick={() => { logout(); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Cerrar Sesion
-                </button>
-              </div>
+      {mobileOpen && (
+        <div className="md:hidden overflow-hidden border-t border-border/50 bg-background/95">
+          <div className="px-4 py-3 flex flex-col gap-1">
+            {navLinks.map(({ href, label, icon: Icon }) => {
+              const active = location === href;
+              return (
+                <Link key={href} href={href} onClick={() => setMobileOpen(false)}>
+                  <button
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      active
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {label}
+                  </button>
+                </Link>
+              );
+            })}
+            <div className="mt-2 pt-2 border-t border-border/50">
+              <button
+                onClick={() => { logout(); setMobileOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="w-4 h-4" />
+                Cerrar Sesion
+              </button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

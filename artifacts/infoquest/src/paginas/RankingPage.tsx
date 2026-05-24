@@ -1,13 +1,12 @@
 // Ranking: tabla completa con puntos, correctas, incorrectas, tiempo y botón para retar
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { useAuth } from "@/contextos/AuthContext";
 import { Badge } from "@/componentes/interfaz/badge";
 import { Button } from "@/componentes/interfaz/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/componentes/interfaz/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/componentes/interfaz/select";
 import { Separator } from "@/componentes/interfaz/separator";
-import { Trophy, Star, Zap, Flame, Medal, Swords, CheckCircle2, XCircle, Clock, Target, Copy, Check } from "lucide-react";
+import { Trophy, Star, Zap, Medal, Swords, CheckCircle2, XCircle, Clock, Target, Copy, Check } from "lucide-react";
 import { cn } from "@/utilidades/utils";
 
 interface RankedUser {
@@ -60,7 +59,6 @@ export function RankingPage() {
   const [loading, setLoading]       = useState(true);
   const [filterGrado, setFilterGrado] = useState<number | null>(null);
 
-  // Modal de retar
   const [retarTarget, setRetarTarget] = useState<RankedUser | null>(null);
   const [retoSeleccionado, setRetoSeleccionado] = useState<string>("");
   const [enviando, setEnviando]     = useState(false);
@@ -85,7 +83,6 @@ export function RankingPage() {
 
   const myPos = ranking.find((r) => r.usuario_id === user?.id);
 
-  // Enviar mensaje de desafío
   const enviarDesafio = async () => {
     if (!retarTarget || !retoSeleccionado) return;
     setEnviando(true);
@@ -120,7 +117,7 @@ export function RankingPage() {
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 page-enter">
       {/* Encabezado */}
       <div className="flex items-center justify-between">
         <div>
@@ -149,11 +146,8 @@ export function RankingPage() {
             const tier = getTier(item.posicion);
             const heights = ["h-20", "h-32", "h-14"];
             return (
-              <motion.div
+              <div
                 key={item.usuario_id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
                 className={cn("flex flex-col items-center", idx === 0 ? "pt-8" : idx === 2 ? "pt-12" : "")}
               >
                 <div
@@ -174,7 +168,7 @@ export function RankingPage() {
                 >
                   <span className="font-orbitron font-bold text-2xl" style={{ color: tier.color }}>{item.posicion}</span>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
@@ -235,29 +229,24 @@ export function RankingPage() {
                 </td>
               </tr>
             )}
-            {filteredRanking.map((item, i) => {
+            {filteredRanking.map((item) => {
               const tier = getTier(item.posicion);
               const isMe = item.usuario_id === user?.id;
               const precision = item.precision_promedio ? Math.round(item.precision_promedio) : 0;
               return (
-                <motion.tr
+                <tr
                   key={item.usuario_id}
-                  initial={{ opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.03 }}
                   className={cn(
                     "border-b border-border/30 transition-colors hover:bg-muted/10",
                     isMe && "bg-primary/5"
                   )}
                 >
-                  {/* Posición */}
                   <td className="py-3 px-3">
                     <div className="flex items-center justify-center w-8">
                       <PosIcon pos={item.posicion} />
                     </div>
                   </td>
 
-                  {/* Jugador */}
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-2.5">
                       <div
@@ -279,24 +268,20 @@ export function RankingPage() {
                     </div>
                   </td>
 
-                  {/* Puntos */}
                   <td className="py-3 px-3 text-right">
                     <span className="font-orbitron font-bold text-sm" style={{ color: tier.color }}>
                       {(item.puntos_totales ?? 0).toLocaleString()}
                     </span>
                   </td>
 
-                  {/* Correctas */}
                   <td className="py-3 px-3 text-right">
                     <span className="text-green-400 font-medium">{item.respuestas_correctas ?? 0}</span>
                   </td>
 
-                  {/* Incorrectas */}
                   <td className="py-3 px-3 text-right">
                     <span className="text-red-400 font-medium">{item.respuestas_incorrectas ?? 0}</span>
                   </td>
 
-                  {/* Precisión */}
                   <td className="py-3 px-3 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <div className="w-16 h-1.5 rounded-full bg-muted/40 overflow-hidden hidden sm:block">
@@ -309,17 +294,14 @@ export function RankingPage() {
                     </div>
                   </td>
 
-                  {/* Tiempo promedio */}
                   <td className="py-3 px-3 text-right text-xs text-muted-foreground">
                     {formatTime(item.tiempo_promedio)}
                   </td>
 
-                  {/* Retos */}
                   <td className="py-3 px-3 text-right">
                     <span className="text-xs font-medium text-muted-foreground">{item.retos_completados ?? 0}</span>
                   </td>
 
-                  {/* Botón retar */}
                   <td className="py-3 px-3 text-center">
                     {!isMe && (
                       <Button
@@ -332,7 +314,7 @@ export function RankingPage() {
                       </Button>
                     )}
                   </td>
-                </motion.tr>
+                </tr>
               );
             })}
           </tbody>

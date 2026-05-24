@@ -1,7 +1,6 @@
 // Sopa de letras interactiva - el usuario busca palabras en la grilla
 // Soporta seleccion con click-drag en horizontal, vertical y diagonal
-import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useState } from "react";
 import { CheckCircle2, Trophy } from "lucide-react";
 import { Button } from "@/componentes/interfaz/button";
 import { cn } from "@/utilidades/utils";
@@ -141,14 +140,9 @@ export default function WordSearchGame({ challengeName, onFinish }: Props) {
   return (
     <div className="space-y-4">
       {lastFound && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: -20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[#22C55E] text-white font-bold px-6 py-3 rounded-full text-lg shadow-lg"
-        >
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[#22C55E] text-white font-bold px-6 py-3 rounded-full text-lg shadow-lg page-enter">
           ¡ {lastFound} encontrado!
-        </motion.div>
+        </div>
       )}
 
       <div className="flex gap-2 flex-wrap">

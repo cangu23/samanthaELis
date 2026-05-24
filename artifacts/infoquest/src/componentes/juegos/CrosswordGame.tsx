@@ -1,7 +1,6 @@
 // Crucigrama interactivo — el usuario completa palabras con pistas
 // Diseño compacto con pistas horizontales y verticales
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/componentes/interfaz/button";
 import { CheckCircle2, XCircle, Trophy } from "lucide-react";
 import { cn } from "@/utilidades/utils";
@@ -235,10 +234,10 @@ export default function CrosswordGame({ challengeName, onFinish }: Props) {
             </Button>
           )}
           {checked && (
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-3 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/30">
+            <div className="text-center p-3 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/30 page-enter">
               <Trophy className="w-6 h-6 text-[#22C55E] mx-auto mb-1" />
               <p className="text-sm font-bold text-white">{correctClues.size}/{clues.length} correctas</p>
-            </motion.div>
+            </div>
           )}
         </div>
       </div>

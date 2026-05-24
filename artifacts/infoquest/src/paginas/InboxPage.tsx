@@ -1,7 +1,6 @@
 // Bandeja de entrada: mensajes directos, alertas y recomendaciones
 // Docentes y estudiantes pueden elegir a quien enviar mensajes
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contextos/AuthContext";
 import { Button } from "@/componentes/interfaz/button";
 import { Badge } from "@/componentes/interfaz/badge";
@@ -36,7 +35,7 @@ function tiempo(fecha: string) {
 }
 
 export function InboxPage() {
-  useAuth(); // solo para proteger la ruta
+  useAuth();
   const token = localStorage.getItem("cerebrito_token");
   const [tab, setTab] = useState<Tab>("mensajes");
 
@@ -129,65 +128,57 @@ export function InboxPage() {
       </div>
 
       {/* Compositor de mensaje */}
-      <AnimatePresence>
-        {composing && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="glass-card rounded-xl p-5 border border-[#0EA5E9]/30 space-y-4"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#0EA5E9]" />
-                Nuevo Mensaje
-              </h3>
-              <Button variant="ghost" size="sm" onClick={() => setComposing(false)}>
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Selector de destinatario */}
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Para:</label>
-              <select
-                value={destId}
-                onChange={(e) => setDestId(Number(e.target.value) || "")}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0EA5E9]"
-              >
-                <option value="">— Seleccionar destinatario —</option>
-                {usuarios
-                  .sort((a, b) => a.rol === "docente" ? -1 : b.rol === "docente" ? 1 : 0)
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.nombre} ({u.rol === "docente" ? "Docente" : `Estudiante`}) — @{u.usuario}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Mensaje:</label>
-              <Textarea
-                value={texto}
-                onChange={(e) => setTexto(e.target.value)}
-                placeholder="Escribe tu mensaje aquí..."
-                rows={4}
-                className="bg-background border-border text-white resize-none"
-              />
-            </div>
-
-            <Button
-              onClick={enviarMensaje}
-              disabled={!destId || !texto.trim() || sending}
-              className="w-full bg-[#0EA5E9] hover:bg-[#0EA5E9]/80 gap-2"
-            >
-              <Send className="w-4 h-4" />
-              {sending ? "Enviando..." : "Enviar Mensaje"}
+      {composing && (
+        <div className="glass-card rounded-xl p-5 border border-[#0EA5E9]/30 space-y-4 page-enter">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-white flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#0EA5E9]" />
+              Nuevo Mensaje
+            </h3>
+            <Button variant="ghost" size="sm" onClick={() => setComposing(false)}>
+              <ArrowLeft className="w-4 h-4" />
             </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Para:</label>
+            <select
+              value={destId}
+              onChange={(e) => setDestId(Number(e.target.value) || "")}
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0EA5E9]"
+            >
+              <option value="">— Seleccionar destinatario —</option>
+              {usuarios
+                .sort((a, b) => a.rol === "docente" ? -1 : b.rol === "docente" ? 1 : 0)
+                .map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nombre} ({u.rol === "docente" ? "Docente" : `Estudiante`}) — @{u.usuario}
+                  </option>
+                ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Mensaje:</label>
+            <Textarea
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              placeholder="Escribe tu mensaje aquí..."
+              rows={4}
+              className="bg-background border-border text-white resize-none"
+            />
+          </div>
+
+          <Button
+            onClick={enviarMensaje}
+            disabled={!destId || !texto.trim() || sending}
+            className="w-full bg-[#0EA5E9] hover:bg-[#0EA5E9]/80 gap-2"
+          >
+            <Send className="w-4 h-4" />
+            {sending ? "Enviando..." : "Enviar Mensaje"}
+          </Button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-2">
@@ -215,161 +206,149 @@ export function InboxPage() {
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">Cargando...</div>
       ) : (
-        <AnimatePresence mode="wait">
-          <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+        <div key={tab} className="page-enter">
 
-            {/* MENSAJES */}
-            {tab === "mensajes" && (
-              <div className="space-y-3">
-                {mensajes.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p>No hay mensajes aún</p>
-                    <p className="text-xs mt-1">Presiona "Nuevo Mensaje" para escribir a alguien</p>
+          {/* MENSAJES */}
+          {tab === "mensajes" && (
+            <div className="space-y-3">
+              {mensajes.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>No hay mensajes aún</p>
+                  <p className="text-xs mt-1">Presiona "Nuevo Mensaje" para escribir a alguien</p>
+                </div>
+              )}
+              {mensajes.map((m) => (
+                <div
+                  key={m.id}
+                  className={cn(
+                    "glass-card rounded-xl p-4 border cursor-pointer transition-all",
+                    !m.leido && !m.es_mio
+                      ? "border-[#0EA5E9]/40 bg-[#0EA5E9]/5"
+                      : "border-white/5"
+                  )}
+                  onClick={() => !m.es_mio && !m.leido && marcarMensajeLeido(m.id)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={cn(
+                      "w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0",
+                      m.es_mio ? "bg-[#A855F7]" : "bg-[#0EA5E9]"
+                    )}>
+                      {m.es_mio
+                        ? (m.destinatario?.nombre?.charAt(0) || "?")
+                        : (m.remitente?.nombre?.charAt(0) || "?")}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-white">
+                            {m.es_mio
+                              ? `→ ${m.destinatario?.nombre || "Desconocido"}`
+                              : m.remitente?.nombre || "Desconocido"}
+                          </span>
+                          <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 border-white/20 text-muted-foreground">
+                            {m.es_mio ? "Enviado" : "Recibido"}
+                          </Badge>
+                          {!m.leido && !m.es_mio && (
+                            <Badge className="text-xs px-1.5 py-0 h-4 bg-[#0EA5E9] text-white">Nuevo</Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">{tiempo(m.creado_en)}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{m.contenido}</p>
+                      {m.remitente && (
+                        <p className="text-xs text-muted-foreground/50 mt-1">
+                          {m.es_mio ? `Para: @${m.destinatario?.nombre}` : `De: ${m.remitente.rol === "docente" ? "Docente" : "Estudiante"} @${m.remitente.nombre}`}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                )}
-                {mensajes.map((m) => (
-                  <motion.div
-                    key={m.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ALERTAS */}
+          {tab === "alertas" && (
+            <div className="space-y-3">
+              {alertas.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>Sin alertas por ahora</p>
+                </div>
+              )}
+              {alertas.map((a) => {
+                const iconColor =
+                  a.tipo === "logro" ? "#22C55E" :
+                  a.tipo === "bajo_rendimiento" ? "#EF4444" :
+                  a.tipo === "nivel_completado" ? "#A855F7" : "#0EA5E9";
+                const expanded = expandedAlert === a.id;
+                return (
+                  <div
+                    key={a.id}
                     className={cn(
                       "glass-card rounded-xl p-4 border cursor-pointer transition-all",
-                      !m.leido && !m.es_mio
-                        ? "border-[#0EA5E9]/40 bg-[#0EA5E9]/5"
-                        : "border-white/5"
+                      !a.leido ? "border-[#0EA5E9]/30" : "border-white/5 opacity-70"
                     )}
-                    onClick={() => !m.es_mio && !m.leido && marcarMensajeLeido(m.id)}
+                    onClick={() => {
+                      setExpandedAlert(expanded ? null : a.id);
+                      if (!a.leido) marcarAlertaLeida(a.id);
+                    }}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className={cn(
-                        "w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0",
-                        m.es_mio ? "bg-[#A855F7]" : "bg-[#0EA5E9]"
-                      )}>
-                        {m.es_mio
-                          ? (m.destinatario?.nombre?.charAt(0) || "?")
-                          : (m.remitente?.nombre?.charAt(0) || "?")}
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: iconColor }} />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold text-white">{a.titulo}</p>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-white">
-                              {m.es_mio
-                                ? `→ ${m.destinatario?.nombre || "Desconocido"}`
-                                : m.remitente?.nombre || "Desconocido"}
-                            </span>
-                            <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 border-white/20 text-muted-foreground">
-                              {m.es_mio ? "Enviado" : "Recibido"}
-                            </Badge>
-                            {!m.leido && !m.es_mio && (
-                              <Badge className="text-xs px-1.5 py-0 h-4 bg-[#0EA5E9] text-white">Nuevo</Badge>
-                            )}
+                            {!a.leido && <div className="w-2 h-2 rounded-full bg-[#0EA5E9]" />}
+                            {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
                           </div>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">{tiempo(m.creado_en)}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2">{m.contenido}</p>
-                        {m.remitente && (
-                          <p className="text-xs text-muted-foreground/50 mt-1">
-                            {m.es_mio ? `Para: @${m.destinatario?.nombre}` : `De: ${m.remitente.rol === "docente" ? "Docente" : "Estudiante"} @${m.remitente.nombre}`}
-                          </p>
-                        )}
+                        {!expanded && <p className="text-xs text-muted-foreground truncate">{a.mensaje}</p>}
                       </div>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-
-            {/* ALERTAS */}
-            {tab === "alertas" && (
-              <div className="space-y-3">
-                {alertas.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p>Sin alertas por ahora</p>
-                  </div>
-                )}
-                {alertas.map((a) => {
-                  const iconColor =
-                    a.tipo === "logro" ? "#22C55E" :
-                    a.tipo === "bajo_rendimiento" ? "#EF4444" :
-                    a.tipo === "nivel_completado" ? "#A855F7" : "#0EA5E9";
-                  const expanded = expandedAlert === a.id;
-                  return (
-                    <motion.div
-                      key={a.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className={cn(
-                        "glass-card rounded-xl p-4 border cursor-pointer",
-                        !a.leido ? "border-[#0EA5E9]/30" : "border-white/5 opacity-70"
-                      )}
-                      onClick={() => {
-                        setExpandedAlert(expanded ? null : a.id);
-                        if (!a.leido) marcarAlertaLeida(a.id);
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: iconColor }} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-semibold text-white">{a.titulo}</p>
-                            <div className="flex items-center gap-2">
-                              {!a.leido && <div className="w-2 h-2 rounded-full bg-[#0EA5E9]" />}
-                              {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-                            </div>
-                          </div>
-                          {!expanded && <p className="text-xs text-muted-foreground truncate">{a.mensaje}</p>}
-                        </div>
+                    {expanded && (
+                      <div className="mt-3 pt-3 border-t border-white/10">
+                        <p className="text-sm text-muted-foreground">{a.mensaje}</p>
+                        <p className="text-xs text-muted-foreground/50 mt-2">{tiempo(a.fecha_creacion)}</p>
                       </div>
-                      <AnimatePresence>
-                        {expanded && (
-                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                            <div className="mt-3 pt-3 border-t border-white/10">
-                              <p className="text-sm text-muted-foreground">{a.mensaje}</p>
-                              <p className="text-xs text-muted-foreground/50 mt-2">{tiempo(a.fecha_creacion)}</p>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* RECOMENDACIONES */}
-            {tab === "recomendaciones" && (
-              <div className="space-y-3">
-                {recs.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Lightbulb className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p>Sin recomendaciones aún</p>
-                    <p className="text-xs mt-1">Completa retos para recibir sugerencias personalizadas</p>
+                    )}
                   </div>
-                )}
-                {recs.map((r) => (
-                  <motion.div
-                    key={r.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="glass-card rounded-xl p-4 border border-[#22C55E]/20"
-                  >
-                    <div className="flex items-start gap-3">
-                      <Lightbulb className="w-5 h-5 text-[#22C55E] flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-semibold text-white">{r.titulo}</p>
-                        <p className="text-sm text-muted-foreground mt-1">{r.descripcion}</p>
-                        <p className="text-xs text-muted-foreground/50 mt-2">{tiempo(r.fecha_creacion)}</p>
-                      </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* RECOMENDACIONES */}
+          {tab === "recomendaciones" && (
+            <div className="space-y-3">
+              {recs.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Lightbulb className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>Sin recomendaciones aún</p>
+                  <p className="text-xs mt-1">Completa retos para recibir sugerencias personalizadas</p>
+                </div>
+              )}
+              {recs.map((r) => (
+                <div
+                  key={r.id}
+                  className="glass-card rounded-xl p-4 border border-[#22C55E]/20"
+                >
+                  <div className="flex items-start gap-3">
+                    <Lightbulb className="w-5 h-5 text-[#22C55E] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-white">{r.titulo}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{r.descripcion}</p>
+                      <p className="text-xs text-muted-foreground/50 mt-2">{tiempo(r.fecha_creacion)}</p>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
-          </motion.div>
-        </AnimatePresence>
+        </div>
       )}
     </div>
   );

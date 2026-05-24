@@ -1,6 +1,5 @@
 // Pagina de perfil del usuario con estadisticas y historial de retos
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { useAuth } from "@/contextos/AuthContext";
 import { Badge } from "@/componentes/interfaz/badge";
 import { Progress } from "@/componentes/interfaz/progress";
@@ -70,13 +69,9 @@ export function ProfilePage() {
       : 0;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 page-enter">
       {/* Perfil header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-2xl p-6 flex flex-col sm:flex-row gap-6 items-center sm:items-start"
-      >
+      <div className="glass-card rounded-2xl p-6 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
         <RobotMascot size="md" mood="happy" className="flex-shrink-0" />
 
         <div className="flex-1 text-center sm:text-left">
@@ -125,16 +120,11 @@ export function ProfilePage() {
             ))}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Estadisticas de precision */}
       {results.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="glass-card rounded-xl p-4"
-        >
+        <div className="glass-card rounded-xl p-4">
           <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
             <Star className="w-4 h-4 text-yellow-400" />
             Estadisticas Generales
@@ -166,15 +156,11 @@ export function ProfilePage() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Historial de retos */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
+      <div>
         <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
           <Clock className="w-4 h-4 text-muted-foreground" />
           Historial de Retos
@@ -192,21 +178,15 @@ export function ProfilePage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {results.map((result, i) => {
+            {results.map((result) => {
               const accuracy =
                 result.total_preguntas > 0
                   ? Math.round((result.respuestas_correctas / result.total_preguntas) * 100)
                   : 0;
-              const scorePercent = result.puntos_maximos > 0
-                ? Math.round((result.puntaje / result.puntos_maximos) * 100)
-                : 0;
 
               return (
-                <motion.div
+                <div
                   key={result.id}
-                  initial={{ opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
                   className="flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/40"
                 >
                   {result.completado ? (
@@ -231,12 +211,12 @@ export function ProfilePage() {
                     <div className="text-sm font-bold text-primary">{result.puntaje} pts</div>
                     <div className="text-xs text-muted-foreground">{accuracy}% precision</div>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

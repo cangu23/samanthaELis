@@ -1,6 +1,5 @@
 // Juego de ordenar código: arrastra las líneas para ponerlas en el orden correcto
 import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, XCircle, GripVertical, Play, RotateCcw } from "lucide-react";
 import { Button } from "@/componentes/interfaz/button";
 import { Badge } from "@/componentes/interfaz/badge";
@@ -13,11 +12,10 @@ interface DragDropGameProps {
 interface CodePuzzle {
   title: string;
   language: string;
-  lines: string[];  // orden correcto
+  lines: string[];
   explanation: string;
 }
 
-// Puzzles de código predefinidos
 const PUZZLES: CodePuzzle[] = [
   {
     title: "Función que suma dos números",
@@ -88,7 +86,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export default function DragDropGame({ challengeName, onFinish }: DragDropGameProps) {
+export default function DragDropGame({ challengeName: _challengeName, onFinish }: DragDropGameProps) {
   const puzzleSet = useRef(shuffle(PUZZLES).slice(0, 3));
   const [puzzleIdx, setPuzzleIdx] = useState(0);
   const [lines, setLines] = useState<string[]>(() => shuffle(puzzleSet.current[0].lines));
@@ -102,7 +100,6 @@ export default function DragDropGame({ challengeName, onFinish }: DragDropGamePr
   const puzzle = puzzleSet.current[puzzleIdx];
   const isLast = puzzleIdx === puzzleSet.current.length - 1;
 
-  // ---- Drag handlers ----
   const onDragStart = (i: number) => setDragIdx(i);
   const onDragEnter = (i: number) => setOverIdx(i);
   const onDragEnd = () => {
@@ -117,7 +114,6 @@ export default function DragDropGame({ challengeName, onFinish }: DragDropGamePr
   };
   const onDragOver = (e: React.DragEvent) => e.preventDefault();
 
-  // ---- Verificar orden ----
   const verificar = () => {
     const correct = puzzle.lines.every((line, i) => lines[i] === line);
     const pts = correct ? Math.round(500 / puzzleSet.current.length) : 0;
@@ -176,9 +172,8 @@ export default function DragDropGame({ challengeName, onFinish }: DragDropGamePr
           const correctAtPos = checked && puzzle.lines[i] === line;
           const wrongAtPos = checked && puzzle.lines[i] !== line;
           return (
-            <motion.div
+            <div
               key={line}
-              layout
               draggable={!checked}
               onDragStart={() => onDragStart(i)}
               onDragEnter={() => onDragEnter(i)}
@@ -191,7 +186,9 @@ export default function DragDropGame({ challengeName, onFinish }: DragDropGamePr
                 ${checked
                   ? correctAtPos
                     ? "border-green-500/50 bg-green-500/10 text-green-300"
-                    : "border-red-500/40 bg-red-500/10 text-red-300"
+                    : wrongAtPos
+                      ? "border-red-500/40 bg-red-500/10 text-red-300"
+                      : "border-border/50 bg-white/5"
                   : "border-border/50 bg-white/5 hover:border-primary/40"}
               `}
             >
@@ -202,24 +199,18 @@ export default function DragDropGame({ challengeName, onFinish }: DragDropGamePr
               )}
               <span className="text-xs text-muted-foreground mr-1 w-4 text-right">{i + 1}.</span>
               <code className="flex-1 whitespace-pre">{line}</code>
-            </motion.div>
+            </div>
           );
         })}
       </div>
 
       {/* Explicación cuando está verificado */}
-      <AnimatePresence>
-        {checked && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`p-3 rounded-lg text-sm ${isCorrect ? "bg-green-500/10 border border-green-500/30 text-green-300" : "bg-red-500/10 border border-red-500/30 text-red-300"}`}
-          >
-            {isCorrect ? "✅ ¡Orden correcto! " : "❌ Orden incorrecto. "}
-            <span className="text-muted-foreground">{puzzle.explanation}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {checked && (
+        <div className={`p-3 rounded-lg text-sm page-enter ${isCorrect ? "bg-green-500/10 border border-green-500/30 text-green-300" : "bg-red-500/10 border border-red-500/30 text-red-300"}`}>
+          {isCorrect ? "✅ ¡Orden correcto! " : "❌ Orden incorrecto. "}
+          <span className="text-muted-foreground">{puzzle.explanation}</span>
+        </div>
+      )}
 
       {/* Botones */}
       <div className="flex gap-2">
