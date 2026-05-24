@@ -1,7 +1,6 @@
-// Pagina de registro de nuevos usuarios (estudiantes y docentes)
+// Pagina de registro de nuevos usuarios (solo estudiantes)
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { motion } from "framer-motion";
 import { useAuth } from "@/contextos/AuthContext";
 import { Button } from "@/componentes/interfaz/button";
 import { Input } from "@/componentes/interfaz/input";
@@ -15,16 +14,12 @@ import {
   SelectValue,
 } from "@/componentes/interfaz/select";
 import { RobotMascot } from "@/componentes/mascota/RobotMascot";
-import { Zap, Eye, EyeOff, AlertCircle, UserPlus, GraduationCap, BookOpen } from "lucide-react";
-import { cn } from "@/utilidades/utils";
-
-type Rol = "estudiante" | "docente";
+import { Zap, Eye, EyeOff, AlertCircle, UserPlus } from "lucide-react";
 
 export function RegisterPage() {
   const { register } = useAuth();
   const [, navigate] = useLocation();
 
-  const [rol, setRol] = useState<Rol>("estudiante");
   const [nombre, setNombre] = useState("");
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
@@ -44,7 +39,7 @@ export function RegisterPage() {
       setError("La contrasena debe tener al menos 6 caracteres");
       return;
     }
-    if (rol === "estudiante" && !grado) {
+    if (!grado) {
       setError("Selecciona tu grado de bachillerato");
       return;
     }
@@ -57,8 +52,8 @@ export function RegisterPage() {
         nombre: nombre.trim(),
         usuario: usuario.trim().toLowerCase(),
         password,
-        rol,
-        grado_bachillerato: rol === "estudiante" ? parseInt(grado) : undefined,
+        rol: "estudiante",
+        grado_bachillerato: parseInt(grado),
       });
       navigate("/dashboard");
     } catch (err: unknown) {
@@ -72,12 +67,7 @@ export function RegisterPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="fixed inset-0 cyber-grid opacity-20 pointer-events-none" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md"
-      >
+      <div className="page-enter relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-6">
           <Link href="/">
@@ -91,35 +81,11 @@ export function RegisterPage() {
             </div>
           </Link>
           <RobotMascot size="sm" mood="excited" className="mx-auto mb-2" />
-          <p className="text-muted-foreground text-sm">Crea tu cuenta y empieza la aventura</p>
+          <p className="text-muted-foreground text-sm">Crea tu cuenta de estudiante</p>
         </div>
 
         <div className="glass-card rounded-2xl p-6">
           <h1 className="text-xl font-bold mb-5 text-center">Crear Cuenta</h1>
-
-          {/* Selector de rol */}
-          <div className="grid grid-cols-2 gap-2 mb-5">
-            {(["estudiante", "docente"] as Rol[]).map((r) => {
-              const Icon = r === "estudiante" ? GraduationCap : BookOpen;
-              const label = r === "estudiante" ? "Estudiante" : "Docente";
-              return (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRol(r)}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all text-sm font-medium",
-                    rol === r
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:border-border/80"
-                  )}
-                >
-                  <Icon className="w-5 h-5" />
-                  {label}
-                </button>
-              );
-            })}
-          </div>
 
           {error && (
             <Alert variant="destructive" className="mb-4">
@@ -152,21 +118,19 @@ export function RegisterPage() {
               <p className="text-xs text-muted-foreground">Solo letras, numeros y guiones bajos</p>
             </div>
 
-            {rol === "estudiante" && (
-              <div className="space-y-1.5">
-                <Label>Grado de Bachillerato</Label>
-                <Select value={grado} onValueChange={setGrado}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona tu grado..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1° de Bachillerato</SelectItem>
-                    <SelectItem value="2">2° de Bachillerato</SelectItem>
-                    <SelectItem value="3">3° de Bachillerato</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="space-y-1.5">
+              <Label>Grado de Bachillerato</Label>
+              <Select value={grado} onValueChange={setGrado}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona tu grado..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1° de Bachillerato</SelectItem>
+                  <SelectItem value="2">2° de Bachillerato</SelectItem>
+                  <SelectItem value="3">3° de Bachillerato</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="password">Contraseña</Label>
@@ -214,8 +178,12 @@ export function RegisterPage() {
               </span>
             </Link>
           </div>
+
+          <div className="mt-3 p-3 rounded-xl border border-border/30 bg-muted/20 text-xs text-muted-foreground text-center">
+            ¿Eres docente? Contacta al administrador para obtener tu cuenta.
+          </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

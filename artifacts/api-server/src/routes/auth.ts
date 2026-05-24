@@ -20,8 +20,8 @@ router.post("/auth/register", async (req, res) => {
       return;
     }
 
-    if (!["estudiante", "docente"].includes(rol)) {
-      res.status(400).json({ error: "validation_error", message: "Rol invalido" });
+    if (rol !== "estudiante") {
+      res.status(403).json({ error: "forbidden", message: "El registro de docentes solo puede realizarlo el administrador" });
       return;
     }
 

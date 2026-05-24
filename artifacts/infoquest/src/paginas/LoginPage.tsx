@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { motion } from "framer-motion";
 import { useAuth } from "@/contextos/AuthContext";
 import { Button } from "@/componentes/interfaz/button";
 import { Input } from "@/componentes/interfaz/input";
@@ -41,12 +40,7 @@ export function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="fixed inset-0 cyber-grid opacity-20 pointer-events-none" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md"
-      >
+      <div className="page-enter relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/">
@@ -144,7 +138,7 @@ export function LoginPage() {
           <p className="font-medium mb-1 text-foreground/70">Cuenta de prueba:</p>
           <p>Usuario: <span className="font-mono-code text-primary">docente1</span> / Clave: <span className="font-mono-code text-primary">123456</span></p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
