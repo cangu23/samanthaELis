@@ -356,21 +356,6 @@ export function CreateChallengePage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label>Tipo de Pregunta</Label>
-                    <select
-                      value={pregunta.tipo}
-                      onChange={(e) => updatePregunta(pIndex, "tipo", e.target.value)}
-                      className={selectCls}
-                    >
-                      <option value="multiple_choice">Opcion Multiple</option>
-                      <option value="true_false">Verdadero / Falso</option>
-                      {tipoJuego === "code_challenge" && (
-                        <option value="code_completion">Completar Codigo</option>
-                      )}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
                     <Label>Puntos</Label>
                     <select
                       value={pregunta.puntos.toString()}
@@ -406,24 +391,12 @@ export function CreateChallengePage() {
 
                 <div className="space-y-1.5">
                   <Label>Respuesta Correcta</Label>
-                  {pregunta.tipo === "true_false" ? (
-                    <select
-                      value={pregunta.respuesta_correcta}
-                      onChange={(e) => updatePregunta(pIndex, "respuesta_correcta", e.target.value)}
-                      className={selectCls}
-                    >
-                      <option value="">— Selecciona la respuesta —</option>
-                      <option value="Verdadero">Verdadero</option>
-                      <option value="Falso">Falso</option>
-                    </select>
-                  ) : (
-                    <Input
-                      placeholder="Escribe exactamente como aparece en las opciones"
-                      value={pregunta.respuesta_correcta}
-                      onChange={(e) => updatePregunta(pIndex, "respuesta_correcta", e.target.value)}
-                      className="text-sm"
-                    />
-                  )}
+                  <Input
+                    placeholder="Escribe exactamente como aparece en las opciones"
+                    value={pregunta.respuesta_correcta}
+                    onChange={(e) => updatePregunta(pIndex, "respuesta_correcta", e.target.value)}
+                    className="text-sm"
+                  />
                 </div>
 
                 <div className="space-y-1.5">
