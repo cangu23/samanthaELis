@@ -19,6 +19,8 @@ import {
   TrendingUp,
   Users,
   PlusCircle,
+  Trash2,
+  Link2,
 } from "lucide-react";
 import { cn } from "@/utilidades/utils";
 
@@ -331,27 +333,42 @@ function StudentDashboard() {
   );
 }
 
+interface RetoPersonalizado {
+  id: number;
+  nombre: string;
+  tipo_juego: string;
+  puntos_maximos: number;
+  numero_preguntas: number;
+  tiempo_limite: number;
+  id_docente: number;
+  modulo: { nombre: string } | null;
+  nivel: { nombre: string } | null;
+}
+
 // Dashboard para docentes
 function TeacherDashboard() {
   const { user } = useAuth();
+  const token = localStorage.getItem("cerebrito_token");
+  const headers = { Authorization: `Bearer ${token}` };
   const [stats, setStats] = useState({
     totalStudents: 0,
     totalChallenges: 0,
     totalResults: 0,
     avgScore: 0,
   });
+  const [misRetos, setMisRetos] = useState<RetoPersonalizado[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [copiado, setCopiado] = useState<number | null>(null);
 
-  // Carga estadisticas generales
+  // Carga estadisticas generales y retos propios
   useEffect(() => {
     Promise.all([
-      fetch("/api/ranking", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
-      }).then((r) => r.json()),
-      fetch("/api/challenges", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("cerebrito_token")}` },
-      }).then((r) => r.json()),
+      fetch("/api/ranking", { headers }).then((r) => r.json()),
+      fetch("/api/challenges", { headers }).then((r) => r.json()),
+      fetch("/api/challenges/custom", { headers }).then((r) => r.json()),
     ])
-      .then(([ranking, challenges]) => {
+      .then(([ranking, challenges, custom]) => {
         const rankData = Array.isArray(ranking) ? ranking : ranking.ranking || [];
         const challData = Array.isArray(challenges) ? challenges : [];
         setStats({
@@ -365,9 +382,33 @@ function TeacherDashboard() {
               )
             : 0,
         });
+        // Solo muestra los retos creados por este docente
+        const propios = Array.isArray(custom)
+          ? custom.filter((r: RetoPersonalizado & { docente?: { id: number } }) => r.id_docente === user?.id || r.docente?.id === user?.id)
+          : [];
+        setMisRetos(propios);
       })
       .catch(console.error);
   }, []);
+
+  const eliminarReto = async (id: number) => {
+    setDeletingId(id);
+    try {
+      await fetch(`/api/challenges/custom/${id}`, { method: "DELETE", headers });
+      setMisRetos((prev) => prev.filter((r) => r.id !== id));
+    } catch {
+      // silenciar error
+    } finally {
+      setDeletingId(null);
+      setConfirmDelete(null);
+    }
+  };
+
+  const copiarLink = (id: number) => {
+    navigator.clipboard.writeText(`${window.location.origin}/challenge/-${id}`);
+    setCopiado(id);
+    setTimeout(() => setCopiado(null), 2000);
+  };
 
   if (!user) return null;
 
@@ -451,13 +492,97 @@ function TeacherDashboard() {
         </div>
       </motion.div>
 
+      {/* Mis Retos Personalizados */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold flex items-center gap-2">
+            <Zap className="w-4 h-4 text-purple-400" />
+            Mis Retos Personalizados
+          </h2>
+          <Link href="/challenges/create">
+            <Button size="sm" variant="outline" className="text-xs gap-1 border-purple-500/30 text-purple-400 hover:bg-purple-500/10">
+              <PlusCircle className="w-3 h-3" />
+              Crear nuevo
+            </Button>
+          </Link>
+        </div>
+
+        {misRetos.length === 0 ? (
+          <div className="text-center py-8 rounded-xl border border-dashed border-border/50 text-muted-foreground text-sm">
+            <Zap className="w-8 h-8 mx-auto mb-2 opacity-20" />
+            Aún no has creado ningún reto personalizado.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {misRetos.map((reto) => {
+              const isConfirming = confirmDelete === reto.id;
+              const isDeleting = deletingId === reto.id;
+              const linkCopiado = copiado === reto.id;
+              return (
+                <div
+                  key={reto.id}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-purple-500/20 hover:border-purple-500/40 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold truncate">{reto.nombre}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {reto.tipo_juego.replace(/_/g, " ")} · {reto.numero_preguntas} preguntas · {reto.puntos_maximos} pts
+                      {reto.modulo && ` · ${reto.modulo.nombre}`}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {/* Copiar link */}
+                    <button
+                      onClick={() => copiarLink(reto.id)}
+                      title="Copiar link del reto"
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 transition-colors"
+                    >
+                      {linkCopiado ? (
+                        <span className="text-[10px] text-blue-400 font-bold">✓ Copiado</span>
+                      ) : (
+                        <Link2 className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+
+                    {/* Eliminar */}
+                    {isConfirming ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => eliminarReto(reto.id)}
+                          disabled={isDeleting}
+                          className="text-[10px] font-bold px-2 py-1 rounded-md bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                        >
+                          {isDeleting ? "..." : "Sí, eliminar"}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(null)}
+                          className="text-[10px] px-2 py-1 rounded-md bg-muted/30 text-muted-foreground border border-border/40 hover:bg-muted/50 transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDelete(reto.id)}
+                        title="Eliminar reto"
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Enlace al ranking y modulos */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="grid sm:grid-cols-2 gap-3"
-      >
+      <div className="grid sm:grid-cols-2 gap-3">
         <Link href="/ranking">
           <div className="p-4 rounded-xl bg-card/60 border border-border/50 hover:border-primary/30 transition-colors cursor-pointer flex items-center justify-between">
             <div>
@@ -476,7 +601,7 @@ function TeacherDashboard() {
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </div>
         </Link>
-      </motion.div>
+      </div>
     </div>
   );
 }
