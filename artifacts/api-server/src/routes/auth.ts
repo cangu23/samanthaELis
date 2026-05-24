@@ -20,8 +20,15 @@ router.post("/auth/register", async (req, res) => {
       return;
     }
 
-    if (rol !== "estudiante") {
-      res.status(403).json({ error: "forbidden", message: "El registro de docentes solo puede realizarlo el administrador" });
+    if (rol === "docente") {
+      const codigoIngresado = req.body.codigo_docente;
+      const codigoCorrecto = process.env.DOCENTE_CODE;
+      if (!codigoCorrecto || codigoIngresado !== codigoCorrecto) {
+        res.status(403).json({ error: "codigo_invalido", message: "El código de docente es incorrecto" });
+        return;
+      }
+    } else if (rol !== "estudiante") {
+      res.status(403).json({ error: "forbidden", message: "Rol no permitido" });
       return;
     }
 

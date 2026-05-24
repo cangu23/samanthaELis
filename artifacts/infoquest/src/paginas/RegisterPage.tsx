@@ -1,4 +1,4 @@
-// Pagina de registro de nuevos usuarios (solo estudiantes)
+// Pagina de registro: estudiantes libremente, docentes con codigo secreto
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contextos/AuthContext";
@@ -14,19 +14,32 @@ import {
   SelectValue,
 } from "@/componentes/interfaz/select";
 import { RobotMascot } from "@/componentes/mascota/RobotMascot";
-import { Zap, Eye, EyeOff, AlertCircle, UserPlus } from "lucide-react";
+import { Zap, Eye, EyeOff, AlertCircle, UserPlus, Lock, ChevronDown, ChevronUp } from "lucide-react";
+
+type Rol = "estudiante" | "docente";
 
 export function RegisterPage() {
   const { register } = useAuth();
   const [, navigate] = useLocation();
 
+  const [rol, setRol] = useState<Rol>("estudiante");
   const [nombre, setNombre] = useState("");
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [grado, setGrado] = useState<string>("");
+  const [codigoDocente, setCodigoDocente] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const [showDocente, setShowDocente] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleToggleDocente = () => {
+    const nuevo = !showDocente;
+    setShowDocente(nuevo);
+    setRol(nuevo ? "docente" : "estudiante");
+    setCodigoDocente("");
+    setError("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,11 +49,15 @@ export function RegisterPage() {
       return;
     }
     if (password.length < 6) {
-      setError("La contrasena debe tener al menos 6 caracteres");
+      setError("La contraseña debe tener al menos 6 caracteres");
       return;
     }
-    if (!grado) {
+    if (rol === "estudiante" && !grado) {
       setError("Selecciona tu grado de bachillerato");
+      return;
+    }
+    if (rol === "docente" && !codigoDocente.trim()) {
+      setError("Ingresa el código de docente");
       return;
     }
 
@@ -52,8 +69,9 @@ export function RegisterPage() {
         nombre: nombre.trim(),
         usuario: usuario.trim().toLowerCase(),
         password,
-        rol: "estudiante",
-        grado_bachillerato: parseInt(grado),
+        rol,
+        grado_bachillerato: rol === "estudiante" ? parseInt(grado) : undefined,
+        codigo_docente: rol === "docente" ? codigoDocente.trim() : undefined,
       });
       navigate("/dashboard");
     } catch (err: unknown) {
@@ -68,7 +86,6 @@ export function RegisterPage() {
       <div className="fixed inset-0 cyber-grid opacity-20 pointer-events-none" />
 
       <div className="page-enter relative z-10 w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-6">
           <Link href="/">
             <div className="inline-flex items-center gap-2 mb-3 cursor-pointer">
@@ -81,7 +98,9 @@ export function RegisterPage() {
             </div>
           </Link>
           <RobotMascot size="sm" mood="excited" className="mx-auto mb-2" />
-          <p className="text-muted-foreground text-sm">Crea tu cuenta de estudiante</p>
+          <p className="text-muted-foreground text-sm">
+            {rol === "docente" ? "Registro de docente" : "Crea tu cuenta de estudiante"}
+          </p>
         </div>
 
         <div className="glass-card rounded-2xl p-6">
@@ -118,19 +137,21 @@ export function RegisterPage() {
               <p className="text-xs text-muted-foreground">Solo letras, numeros y guiones bajos</p>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Grado de Bachillerato</Label>
-              <Select value={grado} onValueChange={setGrado}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona tu grado..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1° de Bachillerato</SelectItem>
-                  <SelectItem value="2">2° de Bachillerato</SelectItem>
-                  <SelectItem value="3">3° de Bachillerato</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {rol === "estudiante" && (
+              <div className="space-y-1.5">
+                <Label>Grado de Bachillerato</Label>
+                <Select value={grado} onValueChange={setGrado}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona tu grado..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1° de Bachillerato</SelectItem>
+                    <SelectItem value="2">2° de Bachillerato</SelectItem>
+                    <SelectItem value="3">3° de Bachillerato</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <Label htmlFor="password">Contraseña</Label>
@@ -155,6 +176,38 @@ export function RegisterPage() {
               </div>
             </div>
 
+            {/* Seccion de docente con codigo secreto */}
+            <div className="rounded-xl border border-border/40 overflow-hidden">
+              <button
+                type="button"
+                onClick={handleToggleDocente}
+                className="w-full flex items-center justify-between px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  ¿Eres docente? Ingresa tu código
+                </span>
+                {showDocente ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {showDocente && (
+                <div className="px-4 pb-4 pt-1 border-t border-border/30 bg-muted/10">
+                  <Label htmlFor="codigo" className="text-xs mb-1.5 block">Código de Docente</Label>
+                  <Input
+                    id="codigo"
+                    type="password"
+                    placeholder="Ingresa el código secreto"
+                    value={codigoDocente}
+                    onChange={(e) => setCodigoDocente(e.target.value)}
+                    disabled={loading}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    Solo el administrador del sistema tiene este código.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <Button type="submit" className="w-full gap-2 mt-2" disabled={loading}>
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -177,10 +230,6 @@ export function RegisterPage() {
                 Inicia sesion
               </span>
             </Link>
-          </div>
-
-          <div className="mt-3 p-3 rounded-xl border border-border/30 bg-muted/20 text-xs text-muted-foreground text-center">
-            ¿Eres docente? Contacta al administrador para obtener tu cuenta.
           </div>
         </div>
       </div>
