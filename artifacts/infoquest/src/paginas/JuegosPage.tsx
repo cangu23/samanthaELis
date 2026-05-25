@@ -127,7 +127,7 @@ export function JuegosPage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder='Busca por tema, ej: "Python", "IA", "Redes", "Seguridad"...'
+          placeholder='Busca por tema'
           className="w-full pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 transition-colors"
           autoFocus
         />
