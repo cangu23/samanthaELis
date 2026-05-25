@@ -1,7 +1,7 @@
 // Router principal del servidor - registra todas las rutas de la plataforma Cerebrito
 // Cada modulo de rutas maneja una parte especifica de la funcionalidad
 import { Router, type IRouter } from "express";
-import healthRouter from "./health";
+import { HealthCheckResponse } from "@workspace/api-zod";
 import authRouter from "./auth";
 import modulesRouter from "./modules";
 import challengesRouter from "./challenges";
@@ -15,8 +15,11 @@ import messagesRouter from "./messages";
 
 const router: IRouter = Router();
 
-// Rutas de salud del servidor
-router.use(healthRouter);
+// Healthcheck
+router.get("/healthz", (_req, res) => {
+  const data = HealthCheckResponse.parse({ status: "ok" });
+  res.json(data);
+});
 
 // Rutas de autenticacion: register, login, logout, me
 router.use(authRouter);
