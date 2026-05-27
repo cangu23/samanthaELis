@@ -58,6 +58,7 @@ export function ChallengePage() {
     { pregunta_id: number; respuesta: string; correcta: boolean; puntos: number }[]
   >([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timeUpRef = useRef(false);
 
   // Carga el reto y sus preguntas
   // IDs negativos = retos personalizados del docente; positivos = predefinidos
@@ -105,20 +106,6 @@ export function ChallengePage() {
   }, [params.id]);
 
   // Timer countdown
-  const startTimer = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          handleTimeOut();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, []);
-
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -126,9 +113,34 @@ export function ChallengePage() {
     }
   }, []);
 
+  const startTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timeUpRef.current = false;
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          timerRef.current = null;
+          timeUpRef.current = true;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
   useEffect(() => {
     return () => stopTimer();
   }, [stopTimer]);
+
+  // Detectar tiempo agotado fuera del updater de estado para evitar errores DOM
+  useEffect(() => {
+    if (timeLeft === 0 && timeUpRef.current && gameState === "playing") {
+      timeUpRef.current = false;
+      stopTimer();
+      submitResult();
+    }
+  }, [timeLeft, gameState]);
 
   const startGame = () => {
     setGameState("playing");

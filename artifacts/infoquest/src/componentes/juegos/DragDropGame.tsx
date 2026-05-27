@@ -173,7 +173,7 @@ export default function DragDropGame({ challengeName: _challengeName, onFinish }
           const wrongAtPos = checked && puzzle.lines[i] !== line;
           return (
             <div
-              key={line}
+              key={i}
               draggable={!checked}
               onDragStart={() => onDragStart(i)}
               onDragEnter={() => onDragEnter(i)}

@@ -1,6 +1,6 @@
 // Sopa de letras interactiva - el usuario busca palabras en la grilla
 // Soporta seleccion con click-drag en horizontal, vertical y diagonal
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CheckCircle2, Trophy } from "lucide-react";
 import { Button } from "@/componentes/interfaz/button";
 import { cn } from "@/utilidades/utils";
@@ -92,6 +92,13 @@ export default function WordSearchGame({ challengeName, onFinish }: Props) {
   const [highlightedCells, setHighlightedCells] = useState<Map<string, string>>(new Map());
   const [lastFound, setLastFound] = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
+  const lastFoundTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (lastFoundTimer.current) clearTimeout(lastFoundTimer.current);
+    };
+  }, []);
 
   const cellKey = (r: number, c: number) => `${r},${c}`;
 
@@ -128,7 +135,8 @@ export default function WordSearchGame({ challengeName, onFinish }: Props) {
       newFound.add(found);
       setFoundWords(newFound);
       setLastFound(found);
-      setTimeout(() => setLastFound(null), 1500);
+      if (lastFoundTimer.current) clearTimeout(lastFoundTimer.current);
+      lastFoundTimer.current = setTimeout(() => setLastFound(null), 1500);
       if (newFound.size === words.length) {
         setFinished(true);
         const score = Math.round((newFound.size / words.length) * 150);
