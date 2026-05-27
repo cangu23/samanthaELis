@@ -91,7 +91,7 @@ export function RankingPage() {
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           id_destinatario: retarTarget.usuario_id,
-          contenido: `⚔️ ¡Te desafío a competir en "${reto?.nombre}"! Entra a Cerebrito y acepta el reto: /challenge/${retoSeleccionado}`,
+          contenido: `[Desafio] Te reto a competir en "${reto?.nombre}". Entra a Cerebrito y acepta el reto: /challenge/${retoSeleccionado}`,
         }),
       });
       setRetadoOk(true);
@@ -346,7 +346,7 @@ export function RankingPage() {
                 onClick={() => setRetarTarget(null)}
                 className="text-muted-foreground hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted"
               >
-                ✕
+                <XCircle className="w-4 h-4" />
               </button>
             </div>
 

@@ -7,7 +7,7 @@ import { Badge } from "@/componentes/interfaz/badge";
 import { Textarea } from "@/componentes/interfaz/textarea";
 import {
   Bell, MessageSquare, Lightbulb, Send, Users, CheckCircle2,
-  AlertCircle, ChevronDown, ChevronUp, ArrowLeft,
+  AlertCircle, ChevronDown, ChevronUp, ArrowLeft, XCircle,
 } from "lucide-react";
 import { cn } from "@/utilidades/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -353,15 +353,17 @@ export function InboxPage() {
                       <div className="flex gap-2 mt-3">
                         <button
                           onClick={() => eliminarRec(r.id)}
-                          className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] hover:bg-[#22C55E]/20 transition-all"
+                          className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] hover:bg-[#22C55E]/20 transition-all flex items-center justify-center gap-1"
                         >
-                          ✓ Aceptar
+                          <CheckCircle2 className="w-3 h-3" />
+                          Aceptar
                         </button>
                         <button
                           onClick={() => eliminarRec(r.id)}
-                          className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/10 hover:text-white transition-all"
+                          className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-1"
                         >
-                          ✕ Rechazar
+                          <XCircle className="w-3 h-3" />
+                          Rechazar
                         </button>
                       </div>
                     </div>

@@ -542,7 +542,7 @@ function TeacherDashboard() {
                       className="p-1.5 rounded-lg text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 transition-colors"
                     >
                       {linkCopiado ? (
-                        <span className="text-[10px] text-blue-400 font-bold">✓ Copiado</span>
+                        <Check className="w-3.5 h-3.5 text-[#22C55E]" />
                       ) : (
                         <Link2 className="w-3.5 h-3.5" />
                       )}

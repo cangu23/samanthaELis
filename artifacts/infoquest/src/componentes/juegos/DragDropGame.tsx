@@ -207,7 +207,7 @@ export default function DragDropGame({ challengeName: _challengeName, onFinish }
       {/* Explicación cuando está verificado */}
       {checked && (
         <div className={`p-3 rounded-lg text-sm page-enter ${isCorrect ? "bg-green-500/10 border border-green-500/30 text-green-300" : "bg-red-500/10 border border-red-500/30 text-red-300"}`}>
-          {isCorrect ? "✅ ¡Orden correcto! " : "❌ Orden incorrecto. "}
+          {isCorrect ? "Orden correcto. " : "Orden incorrecto. "}
           <span className="text-muted-foreground">{puzzle.explanation}</span>
         </div>
       )}
