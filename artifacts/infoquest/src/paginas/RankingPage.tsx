@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contextos/AuthContext";
 import { Badge } from "@/componentes/interfaz/badge";
 import { Button } from "@/componentes/interfaz/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/componentes/interfaz/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/componentes/interfaz/select";
 import { Separator } from "@/componentes/interfaz/separator";
 import { Trophy, Star, Zap, Medal, Swords, CheckCircle2, XCircle, Clock, Target, Copy, Check } from "lucide-react";
 import { cn } from "@/utilidades/utils";
@@ -329,86 +331,76 @@ export function RankingPage() {
         ))}
       </div>
 
-      {/* MODAL RETAR — sin portal, overlay puro */}
-      {retarTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setRetarTarget(null)}
-          />
-          {/* Card */}
-          <div className="relative w-full max-w-md rounded-2xl border border-border/60 bg-popover shadow-2xl p-6 space-y-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-orbitron font-semibold flex items-center gap-2">
-                <Swords className="w-5 h-5 text-orange-400" />
-                Retar a {retarTarget.nombre?.split(" ")[0]}
-              </h2>
-              <button
-                onClick={() => setRetarTarget(null)}
-                className="text-muted-foreground hover:text-white transition-colors text-lg leading-none"
-              >✕</button>
+      {/* MODAL RETAR */}
+      <Dialog open={!!retarTarget} onOpenChange={(o) => !o && setRetarTarget(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-orbitron">
+              <Swords className="w-5 h-5 text-orange-400" />
+              Retar a {retarTarget?.nombre?.split(" ")[0]}
+            </DialogTitle>
+          </DialogHeader>
+
+          {retadoOk ? (
+            <div className="py-6 text-center space-y-3">
+              <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto" />
+              <p className="font-semibold">¡Desafío enviado!</p>
+              <p className="text-sm text-muted-foreground">
+                {retarTarget?.nombre} recibirá tu desafío en su bandeja.
+              </p>
+              <Button onClick={() => setRetarTarget(null)} className="w-full">Listo</Button>
             </div>
-
-            {retadoOk ? (
-              <div className="py-4 text-center space-y-3">
-                <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto" />
-                <p className="font-semibold">¡Desafío enviado!</p>
-                <p className="text-sm text-muted-foreground">
-                  {retarTarget.nombre} recibirá tu desafío en su bandeja.
-                </p>
-                <Button onClick={() => setRetarTarget(null)} className="w-full">Listo</Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Elige el reto del desafío</label>
-                  <select
-                    value={retoSeleccionado}
-                    onChange={(e) => setRetoSeleccionado(e.target.value)}
-                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/60 transition-colors appearance-none cursor-pointer"
-                  >
-                    <option value="">Selecciona un reto...</option>
+          ) : (
+            <div className="space-y-4 pt-2">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Elige el reto del desafío</label>
+                <Select value={retoSeleccionado} onValueChange={setRetoSeleccionado}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un reto..." />
+                  </SelectTrigger>
+                  <SelectContent>
                     {retos.map((r) => (
-                      <option key={r.id} value={String(r.id)}>{r.nombre}</option>
+                      <SelectItem key={r.id} value={String(r.id)}>
+                        {r.nombre}
+                      </SelectItem>
                     ))}
-                  </select>
-                </div>
-
-                {retoSeleccionado && (
-                  <div className="p-3 rounded-lg bg-muted/20 border border-border/50 text-xs text-muted-foreground break-all">
-                    {window.location.origin}/challenge/{retoSeleccionado}
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 gap-2"
-                    disabled={!retoSeleccionado}
-                    onClick={copiarLink}
-                  >
-                    {linkCopiado ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                    {linkCopiado ? "¡Copiado!" : "Copiar link"}
-                  </Button>
-                  <Button
-                    className="flex-1 gap-2 bg-orange-500 hover:bg-orange-600"
-                    disabled={!retoSeleccionado || enviando}
-                    onClick={enviarDesafio}
-                  >
-                    <Swords className="w-4 h-4" />
-                    {enviando ? "Enviando..." : "Enviar desafío"}
-                  </Button>
-                </div>
-                <Separator />
-                <p className="text-xs text-muted-foreground text-center">
-                  Se enviará un mensaje directo con el link del reto
-                </p>
+                  </SelectContent>
+                </Select>
               </div>
-            )}
-          </div>
-        </div>
-      )}
+
+              {retoSeleccionado && (
+                <div className="p-3 rounded-lg bg-muted/20 border border-border/50 text-xs text-muted-foreground break-all">
+                  🔗 {window.location.origin}/challenge/{retoSeleccionado}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 gap-2"
+                  disabled={!retoSeleccionado}
+                  onClick={copiarLink}
+                >
+                  {linkCopiado ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                  {linkCopiado ? "¡Copiado!" : "Copiar link"}
+                </Button>
+                <Button
+                  className="flex-1 gap-2 bg-orange-500 hover:bg-orange-600"
+                  disabled={!retoSeleccionado || enviando}
+                  onClick={enviarDesafio}
+                >
+                  <Swords className="w-4 h-4" />
+                  {enviando ? "Enviando..." : "Enviar desafío"}
+                </Button>
+              </div>
+              <Separator />
+              <p className="text-xs text-muted-foreground text-center">
+                Se enviará un mensaje directo con el link del reto
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
