@@ -14,6 +14,7 @@ import { InboxPage } from "@/paginas/InboxPage";
 import { ProfilePage } from "@/paginas/ProfilePage";
 import { CreateChallengePage } from "@/paginas/CreateChallengePage";
 import { JuegosPage } from "@/paginas/JuegosPage";
+import { CompetirPage } from "@/paginas/CompetirPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -170,6 +171,13 @@ function AppRoutes() {
           <AppLayout>
             <CreateChallengePage />
           </AppLayout>
+        </ProtectedRoute>
+      </Route>
+
+      {/* Sesion de competencia publica: estudiante entra con el link del docente */}
+      <Route path="/competir/:code">
+        <ProtectedRoute>
+          <CompetirPage />
         </ProtectedRoute>
       </Route>
 

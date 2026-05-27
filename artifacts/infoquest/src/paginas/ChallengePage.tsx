@@ -43,6 +43,7 @@ export function ChallengePage() {
   const { user } = useAuth();
   const token = localStorage.getItem("cerebrito_token");
   const headers = { Authorization: `Bearer ${token}` };
+  const sesionCode = new URLSearchParams(window.location.search).get("sesion");
 
   const [reto, setReto] = useState<Reto | null>(null);
   const [preguntas, setPreguntas] = useState<Pregunta[]>([]);
@@ -237,6 +238,18 @@ export function ChallengePage() {
     setCorrectCount(finalCorrect);
     setGameState("result");
     try {
+      if (sesionCode) {
+        fetch(`/api/sessions/${sesionCode}/result`, {
+          method: "POST",
+          headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            puntuacion: finalScore,
+            tiempo_total: totalTime - timeLeft,
+            respuestas_correctas: finalCorrect,
+            total_preguntas: finalTotal || 1,
+          }),
+        }).catch(() => {});
+      }
       await fetch(`/api/results`, {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
@@ -373,10 +386,17 @@ export function ChallengePage() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Dashboard
             </Button>
-            <Button onClick={() => navigate("/ranking")} className="flex-1 gap-2">
-              <Trophy className="w-4 h-4" />
-              Ver Ranking
-            </Button>
+            {sesionCode ? (
+              <Button onClick={() => navigate(`/competir/${sesionCode}`)} className="flex-1 gap-2 bg-[#A855F7] hover:bg-[#A855F7]/80">
+                <Trophy className="w-4 h-4" />
+                Ver Ranking Sesión
+              </Button>
+            ) : (
+              <Button onClick={() => navigate("/ranking")} className="flex-1 gap-2">
+                <Trophy className="w-4 h-4" />
+                Ver Ranking
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -12,6 +12,7 @@ import feedbackRouter from "./feedback";
 import savedAttemptsRouter from "./saved_attempts";
 import profilesRouter from "./profiles";
 import messagesRouter from "./messages";
+import sessionsRouter from "./sessions";
 
 const router: IRouter = Router();
 
@@ -50,5 +51,8 @@ router.use(profilesRouter);
 
 // Rutas de mensajes directos entre usuarios (bidireccional con destinatario elegido)
 router.use(messagesRouter);
+
+// Rutas de sesiones de competencia: crear, unirse, ranking e informe
+router.use(sessionsRouter);
 
 export default router;
