@@ -38,8 +38,6 @@ router.get("/ranking", requireAuth, async (req, res) => {
             grado_bachillerato: perfilesTable.grado_bachillerato,
             avatar_url: perfilesTable.avatar_url,
             puntos_totales: perfilesTable.puntos_totales,
-
-            
             retos_completados: perfilesTable.retos_completados,
             racha_dias: perfilesTable.racha_dias,
             ultimo_acceso: perfilesTable.ultimo_acceso,
