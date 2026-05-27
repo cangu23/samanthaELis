@@ -528,13 +528,13 @@ export function ChallengePage() {
                           : "bg-muted/20 border-border/40 opacity-50"
                   )}
                 >
-                  <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-2">
                     {isCorrect && <CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0" />}
                     {isWrong && <XCircle className="w-4 h-4 text-destructive flex-shrink-0" />}
                     <span className={pregunta.tipo === "code_completion" ? "font-mono-code" : ""}>
                       {opcion}
                     </span>
-                  </div>
+                  </span>
                 </button>
               );
             })}

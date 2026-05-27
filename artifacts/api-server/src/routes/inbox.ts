@@ -157,6 +157,30 @@ router.get("/inbox/recommendations", requireAuth, async (req: AuthRequest, res) 
   }
 });
 
+// DELETE /inbox/recommendations/:id - Eliminar una recomendacion (aceptar o rechazar)
+router.delete("/inbox/recommendations/:id", requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const recId = Number(req.params.id);
+
+    const [rec] = await db
+      .select()
+      .from(recomendacionesTable)
+      .where(and(eq(recomendacionesTable.id, recId), eq(recomendacionesTable.id_usuario, req.user!.id)));
+
+    if (!rec) {
+      res.status(404).json({ error: "not_found", message: "Recomendacion no encontrada" });
+      return;
+    }
+
+    await db.delete(recomendacionesTable).where(eq(recomendacionesTable.id, recId));
+
+    res.json({ success: true, message: "Recomendacion eliminada" });
+  } catch (err) {
+    req.log.error({ err }, "Error al eliminar recomendacion");
+    res.status(500).json({ error: "server_error", message: "Error interno" });
+  }
+});
+
 // GET /inbox/feedback - Obtener feedback recibido del docente (mensajes del estudiante + respuestas)
 router.get("/inbox/feedback", requireAuth, async (req: AuthRequest, res) => {
   try {

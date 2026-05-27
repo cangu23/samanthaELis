@@ -99,6 +99,15 @@ export function InboxPage() {
     setMensajes((prev) => prev.map((m) => m.id === id ? { ...m, leido: true } : m));
   }
 
+  async function eliminarRec(id: number) {
+    setRecs((prev) => prev.filter((r) => r.id !== id));
+    try {
+      await fetch(`/api/inbox/recommendations/${id}`, { method: "DELETE", headers });
+    } catch {
+      // silencioso: ya se removio del UI
+    }
+  }
+
   const noLeidosMensajes = mensajes.filter((m) => !m.leido && !m.es_mio).length;
   const noLeidosAlertas = alertas.filter((a) => !a.leido).length;
 
@@ -196,7 +205,7 @@ export function InboxPage() {
             <t.icon className="w-4 h-4" />
             {t.label}
             {t.badge ? (
-              <Badge className="ml-1 bg-red-500 text-white text-xs px-1.5 py-0 h-5 min-w-5">{t.badge}</Badge>
+              <span className="ml-1 bg-red-500 text-white text-xs px-1.5 rounded-full inline-flex items-center justify-center font-bold min-w-[20px] h-5">{t.badge}</span>
             ) : null}
           </button>
         ))}
@@ -337,10 +346,24 @@ export function InboxPage() {
                 >
                   <div className="flex items-start gap-3">
                     <Lightbulb className="w-5 h-5 text-[#22C55E] flex-shrink-0 mt-0.5" />
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-white">{r.titulo}</p>
                       <p className="text-sm text-muted-foreground mt-1">{r.descripcion}</p>
                       <p className="text-xs text-muted-foreground/50 mt-2">{tiempo(r.fecha_creacion)}</p>
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          onClick={() => eliminarRec(r.id)}
+                          className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] hover:bg-[#22C55E]/20 transition-all"
+                        >
+                          ✓ Aceptar
+                        </button>
+                        <button
+                          onClick={() => eliminarRec(r.id)}
+                          className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/10 hover:text-white transition-all"
+                        >
+                          ✕ Rechazar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
