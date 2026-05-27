@@ -41,3 +41,4 @@ channel = "stable-25_05"
 
 [userenv.shared]
 DOCENTE_CODE = "CUMBAYA2025"
+NEON_DATABASE_URL = "postgresql://neondb_owner:npg_9QswUdA1GMhN@ep-long-violet-ap9na6n6.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require"
