@@ -153,19 +153,23 @@ export default function WordSearchGame({ challengeName, onFinish }: Props) {
         </div>
       )}
 
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap items-center">
+        <span className="text-xs text-muted-foreground mr-1">Busca {words.length} palabras:</span>
         {words.map((w) => (
           <span
             key={w}
             className={cn(
               "px-2 py-1 rounded-lg text-xs font-mono font-bold border transition-all",
               foundWords.has(w)
-                ? "bg-[#22C55E]/20 border-[#22C55E] text-[#22C55E] line-through opacity-60"
-                : "bg-white/5 border-white/20 text-white"
+                ? "bg-[#22C55E]/20 border-[#22C55E] text-[#22C55E]"
+                : "bg-white/5 border-white/10 text-white/40 tracking-widest"
             )}
           >
-            {foundWords.has(w) && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
-            {w}
+            {foundWords.has(w) ? (
+              <><CheckCircle2 className="w-3 h-3 inline mr-1" />{w}</>
+            ) : (
+              w.split("").map(() => "_").join(" ")
+            )}
           </span>
         ))}
       </div>

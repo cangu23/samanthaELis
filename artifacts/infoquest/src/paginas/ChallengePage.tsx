@@ -232,6 +232,10 @@ export function ChallengePage() {
     const finalScore = overrideScore ?? score;
     const finalCorrect = overrideCorrect ?? correctCount;
     const finalTotal = overrideTotal ?? preguntas.length;
+    // Mostrar resultado inmediatamente, guardar en servidor en background
+    setScore(finalScore);
+    setCorrectCount(finalCorrect);
+    setGameState("result");
     try {
       await fetch(`/api/results`, {
         method: "POST",
@@ -249,9 +253,6 @@ export function ChallengePage() {
     } catch (err) {
       console.error("Error guardando resultado:", err);
     }
-    setScore(finalScore);
-    setCorrectCount(finalCorrect);
-    setGameState("result");
   };
 
   const formatTime = (secs: number) => {
