@@ -1,28 +1,11 @@
-// Barra de navegacion principal - visible en todas las paginas autenticadas
+// Barra de navegacion principal — sin portales Radix para evitar conflictos DOM
 import { Link, useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contextos/AuthContext";
-import { Button } from "@/componentes/interfaz/button";
 import { Badge } from "@/componentes/interfaz/badge";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/componentes/interfaz/dropdown-menu";
-import {
-  Trophy,
-  BookOpen,
-  LayoutDashboard,
-  LogOut,
-  Bell,
-  User,
-  Menu,
-  X,
-  Zap,
-  ChevronDown,
-  Gamepad2,
+  Trophy, BookOpen, LayoutDashboard, LogOut, Bell,
+  User, Menu, X, Zap, ChevronDown, Gamepad2,
 } from "lucide-react";
 import { cn } from "@/utilidades/utils";
 
@@ -30,31 +13,37 @@ export function Navbar() {
   const { user, logout } = useAuth();
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   if (!user) return null;
 
   const isDocente = user.rol === "docente";
 
-  const navLinks = isDocente
-    ? [
-        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/juegos", label: "Juegos", icon: Gamepad2 },
-        { href: "/modules", label: "Módulos", icon: BookOpen },
-        { href: "/ranking", label: "Ranking", icon: Trophy },
-        { href: "/inbox", label: "Bandeja", icon: Bell },
-      ]
-    : [
-        { href: "/dashboard", label: "Inicio", icon: LayoutDashboard },
-        { href: "/juegos", label: "Juegos", icon: Gamepad2 },
-        { href: "/modules", label: "Módulos", icon: BookOpen },
-        { href: "/ranking", label: "Ranking", icon: Trophy },
-        { href: "/inbox", label: "Bandeja", icon: Bell },
-      ];
+  const navLinks = [
+    { href: "/dashboard", label: "Inicio",   icon: LayoutDashboard },
+    { href: "/juegos",    label: "Juegos",    icon: Gamepad2 },
+    { href: "/modules",   label: "Módulos",   icon: BookOpen },
+    { href: "/ranking",   label: "Ranking",   icon: Trophy },
+    { href: "/inbox",     label: "Bandeja",   icon: Bell },
+  ];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
+
           {/* Logo */}
           <Link href="/dashboard">
             <div className="flex items-center gap-2 cursor-pointer hover:scale-[1.03] transition-transform">
@@ -67,20 +56,18 @@ export function Navbar() {
             </div>
           </Link>
 
-          {/* Links de navegacion - desktop */}
+          {/* Links — desktop */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map(({ href, label, icon: Icon }) => {
               const active = location === href || location.startsWith(href + "/");
               return (
                 <Link key={href} href={href}>
-                  <button
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hover:scale-[1.03] active:scale-[0.97]",
-                      active
-                        ? "bg-primary/15 text-primary border border-primary/30"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
+                  <button className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                    active
+                      ? "bg-primary/15 text-primary border border-primary/30"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}>
                     <Icon className="w-4 h-4" />
                     {label}
                   </button>
@@ -89,9 +76,9 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Zona derecha: puntos + perfil */}
+          {/* Derecha: puntos + perfil */}
           <div className="flex items-center gap-3">
-            {/* Puntos totales del usuario */}
+            {/* Puntos */}
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
               <Trophy className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-bold text-primary font-mono">
@@ -99,52 +86,60 @@ export function Navbar() {
               </span>
             </div>
 
-            {/* Menu de perfil */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors hover:scale-[1.03] active:scale-[0.97]">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-white">
-                    {user.nombre.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-sm font-medium hidden sm:block max-w-[100px] truncate">
-                    {user.nombre.split(" ")[0]}
-                  </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <div className="px-3 py-2">
-                  <p className="text-sm font-semibold">{user.nombre}</p>
-                  <p className="text-xs text-muted-foreground">{user.usuario}</p>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "mt-1 text-xs",
-                      isDocente ? "border-secondary/50 text-secondary" : "border-primary/50 text-primary"
-                    )}
-                  >
-                    {isDocente ? "Docente" : `${user.grado_bachillerato}° Bachillerato`}
-                  </Badge>
+            {/* Dropdown de perfil — sin portal */}
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen((o) => !o)}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors"
+              >
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-white">
+                  {user.nombre.charAt(0).toUpperCase()}
                 </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
-                    <User className="w-4 h-4 mr-2" />
-                    Mi Perfil
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={logout}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Cerrar Sesion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <span className="text-sm font-medium hidden sm:block max-w-[100px] truncate">
+                  {user.nombre.split(" ")[0]}
+                </span>
+                <ChevronDown className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", profileOpen && "rotate-180")} />
+              </button>
 
-            {/* Boton menu movil */}
+              {profileOpen && (
+                <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-border/60 bg-popover shadow-xl z-50 overflow-hidden">
+                  {/* Cabecera del usuario */}
+                  <div className="px-3 py-3 border-b border-border/50">
+                    <p className="text-sm font-semibold">{user.nombre}</p>
+                    <p className="text-xs text-muted-foreground">{user.usuario}</p>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "mt-1 text-xs",
+                        isDocente ? "border-secondary/50 text-secondary" : "border-primary/50 text-primary"
+                      )}
+                    >
+                      {isDocente ? "Docente" : `${user.grado_bachillerato}° Bachillerato`}
+                    </Badge>
+                  </div>
+
+                  {/* Opciones */}
+                  <Link href="/profile" onClick={() => setProfileOpen(false)}>
+                    <button className="w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-muted transition-colors text-left">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      Mi Perfil
+                    </button>
+                  </Link>
+
+                  <div className="border-t border-border/50" />
+
+                  <button
+                    onClick={() => { logout(); setProfileOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Cerrar Sesion
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Botón móvil */}
             <button
               className="md:hidden p-1.5 rounded-lg hover:bg-muted"
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -155,22 +150,18 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Menu movil */}
+      {/* Menu móvil */}
       {mobileOpen && (
-        <div className="md:hidden overflow-hidden border-t border-border/50 bg-background/95">
+        <div className="md:hidden border-t border-border/50 bg-background/95">
           <div className="px-4 py-3 flex flex-col gap-1">
             {navLinks.map(({ href, label, icon: Icon }) => {
               const active = location === href;
               return (
                 <Link key={href} href={href} onClick={() => setMobileOpen(false)}>
-                  <button
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                      active
-                        ? "bg-primary/15 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
+                  <button className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    active ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}>
                     <Icon className="w-4 h-4" />
                     {label}
                   </button>

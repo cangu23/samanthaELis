@@ -6,13 +6,6 @@ import { Button } from "@/componentes/interfaz/button";
 import { Input } from "@/componentes/interfaz/input";
 import { Label } from "@/componentes/interfaz/label";
 import { Alert, AlertDescription } from "@/componentes/interfaz/alert";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/componentes/interfaz/select";
 import { RobotMascot } from "@/componentes/mascota/RobotMascot";
 import { Zap, Eye, EyeOff, AlertCircle, UserPlus, Lock, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -140,16 +133,16 @@ export function RegisterPage() {
             {rol === "estudiante" && (
               <div className="space-y-1.5">
                 <Label>Grado de Bachillerato</Label>
-                <Select value={grado} onValueChange={setGrado}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona tu grado..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1° de Bachillerato</SelectItem>
-                    <SelectItem value="2">2° de Bachillerato</SelectItem>
-                    <SelectItem value="3">3° de Bachillerato</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select
+                  value={grado}
+                  onChange={(e) => setGrado(e.target.value)}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/60 transition-colors appearance-none cursor-pointer"
+                >
+                  <option value="">Selecciona tu grado...</option>
+                  <option value="1">1° de Bachillerato</option>
+                  <option value="2">2° de Bachillerato</option>
+                  <option value="3">3° de Bachillerato</option>
+                </select>
               </div>
             )}
 
