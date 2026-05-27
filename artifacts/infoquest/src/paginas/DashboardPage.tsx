@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/contextos/AuthContext";
-import { Button } from "@/componentes/interfaz/button";
+import { buttonVariants } from "@/componentes/interfaz/button";
+import { cn } from "@/utilidades/utils";
 import { Badge } from "@/componentes/interfaz/badge";
 import { Progress } from "@/componentes/interfaz/progress";
 import { RobotMascot } from "@/componentes/mascota/RobotMascot";
@@ -189,10 +190,11 @@ function StudentDashboard() {
                       {attempt.progreso_actual}/{attempt.total_preguntas} preguntas completadas
                     </div>
                   </div>
-                  <Link href={`/challenge/${attempt.id_reto}`}>
-                    <Button size="sm" variant="outline" className="flex-shrink-0">
-                      Continuar
-                    </Button>
+                  <Link
+                    href={`/challenge/${attempt.id_reto}`}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-shrink-0")}
+                  >
+                    Continuar
                   </Link>
                 </div>
               );
@@ -208,10 +210,11 @@ function StudentDashboard() {
             <Zap className="w-4 h-4 text-primary" />
             Retos Disponibles
           </h2>
-          <Link href="/modules">
-            <Button variant="ghost" size="sm" className="text-xs gap-1">
-              Ver todo <ChevronRight className="w-3 h-3" />
-            </Button>
+          <Link
+            href="/modules"
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-xs gap-1")}
+          >
+            Ver todo <ChevronRight className="w-3 h-3" />
           </Link>
         </div>
 
@@ -255,11 +258,12 @@ function StudentDashboard() {
                       </div>
                     </div>
                   </div>
-                  <Link href={`/challenge/${challenge.id}`}>
-                    <Button size="sm" className="w-full mt-3 gap-2 h-8 text-xs">
-                      <Play className="w-3 h-3" />
-                      Iniciar Reto
-                    </Button>
+                  <Link
+                    href={`/challenge/${challenge.id}`}
+                    className={cn(buttonVariants({ size: "sm" }), "w-full mt-3 gap-2 h-8 text-xs")}
+                  >
+                    <Play className="w-3 h-3" />
+                    Iniciar Reto
                   </Link>
                 </div>
               );
@@ -451,11 +455,12 @@ function TeacherDashboard() {
             <Zap className="w-4 h-4 text-purple-400" />
             Mis Retos Personalizados
           </h2>
-          <Link href="/challenges/create">
-            <Button size="sm" variant="outline" className="text-xs gap-1 border-purple-500/30 text-purple-400 hover:bg-purple-500/10">
-              <PlusCircle className="w-3 h-3" />
-              Crear nuevo
-            </Button>
+          <Link
+            href="/challenges/create"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs gap-1 border-purple-500/30 text-purple-400 hover:bg-purple-500/10")}
+          >
+            <PlusCircle className="w-3 h-3" />
+            Crear nuevo
           </Link>
         </div>
 

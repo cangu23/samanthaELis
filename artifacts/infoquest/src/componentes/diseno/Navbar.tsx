@@ -61,18 +61,18 @@ export function Navbar() {
             {navLinks.map(({ href, label, icon: Icon }) => {
               const active = location === href || location.startsWith(href + "/");
               return (
-                <Link key={href} href={href}>
-                  <button
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                      active
-                        ? "bg-primary/15 text-primary border border-primary/30"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {label}
-                  </button>
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                    active
+                      ? "bg-primary/15 text-primary border border-primary/30"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
                 </Link>
               );
             })}
@@ -120,11 +120,13 @@ export function Navbar() {
                     </Badge>
                   </div>
 
-                  <Link href="/profile" onClick={() => setProfileOpen(false)}>
-                    <button className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:bg-muted transition-colors">
-                      <User className="w-4 h-4" />
-                      Mi Perfil
-                    </button>
+                  <Link
+                    href="/profile"
+                    onClick={() => setProfileOpen(false)}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:bg-muted transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    Mi Perfil
                   </Link>
 
                   <div className="border-t border-border/50">
@@ -158,27 +160,30 @@ export function Navbar() {
             {navLinks.map(({ href, label, icon: Icon }) => {
               const active = location === href;
               return (
-                <Link key={href} href={href} onClick={() => setMobileOpen(false)}>
-                  <button
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                      active
-                        ? "bg-primary/15 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {label}
-                  </button>
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    active
+                      ? "bg-primary/15 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
                 </Link>
               );
             })}
 
-            <Link href="/profile" onClick={() => setMobileOpen(false)}>
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                <User className="w-4 h-4" />
-                Mi Perfil
-              </button>
+            <Link
+              href="/profile"
+              onClick={() => setMobileOpen(false)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              <User className="w-4 h-4" />
+              Mi Perfil
             </Link>
 
             <div className="mt-1 pt-1 border-t border-border/50">

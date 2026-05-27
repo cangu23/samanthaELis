@@ -1,6 +1,7 @@
 // Pagina de inicio - Landing page con mascota animada y call-to-action
 import { Link } from "wouter";
-import { Button } from "@/componentes/interfaz/button";
+import { buttonVariants } from "@/componentes/interfaz/button";
+import { cn } from "@/utilidades/utils";
 import { Badge } from "@/componentes/interfaz/badge";
 import { RobotMascot } from "@/componentes/mascota/RobotMascot";
 import {
@@ -66,15 +67,11 @@ export function LandingPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href="/login">
-            <Button variant="ghost" size="sm">
-              Iniciar Sesion
-            </Button>
+          <Link href="/login" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            Iniciar Sesion
           </Link>
-          <Link href="/register">
-            <Button size="sm" className="neon-border">
-              Registrarse
-            </Button>
+          <Link href="/register" className={cn(buttonVariants({ size: "sm" }), "neon-border")}>
+            Registrarse
           </Link>
         </div>
       </header>
@@ -106,17 +103,13 @@ export function LandingPage() {
             </p>
 
             <div className="flex flex-wrap gap-4 mb-10">
-              <Link href="/register">
-                <Button size="lg" className="gap-2 neon-border text-base px-6">
-                  Empezar Ahora
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
+              <Link href="/register" className={cn(buttonVariants({ size: "lg" }), "gap-2 neon-border text-base px-6")}>
+                Empezar Ahora
+                <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link href="/login">
-                <Button size="lg" variant="outline" className="gap-2 text-base px-6">
-                  <Users className="w-5 h-5" />
-                  Soy Docente
-                </Button>
+              <Link href="/login" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2 text-base px-6")}>
+                <Users className="w-5 h-5" />
+                Soy Docente
               </Link>
             </div>
 
