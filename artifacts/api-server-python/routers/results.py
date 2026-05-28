@@ -48,7 +48,7 @@ def create_result(body: ResultBody, user=Depends(get_current_user)):
         with conn.cursor() as cur:
             cur.execute(
                 """INSERT INTO resultados
-                   (id_usuario, id_reto, is_custom, puntuacion, puntos_maximos, precision,
+                   (id_usuario, id_reto, is_custom, puntuacion, puntos_maximos, `precision`,
                     tiempo_total, detalles, completado, tiempo_respuesta, respuestas_correctas, respuestas_incorrectas)
                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0, %s, %s)""",
                 (user["id"], body.id_reto, body.is_custom, puntuacion, body.puntos_maximos,
@@ -135,7 +135,7 @@ def my_history(user=Depends(get_current_user)):
 def stats(user=Depends(get_current_user)):
     with get_db() as conn:
         s = fetchone(conn,
-            "SELECT SUM(puntuacion) as puntos_totales, COUNT(*) as retos_completados, AVG(precision) as precision_promedio, AVG(tiempo_total) as tiempo_promedio FROM resultados WHERE id_usuario = %s",
+            "SELECT SUM(puntuacion) as puntos_totales, COUNT(*) as retos_completados, AVG(`precision`) as precision_promedio, AVG(tiempo_total) as tiempo_promedio FROM resultados WHERE id_usuario = %s",
             (user["id"],))
         perfil = fetchone(conn, "SELECT racha_dias FROM perfiles WHERE id = %s", (user["id"],))
         mejor = fetchone(conn, "SELECT puntuacion FROM resultados WHERE id_usuario = %s ORDER BY puntuacion DESC LIMIT 1", (user["id"],))

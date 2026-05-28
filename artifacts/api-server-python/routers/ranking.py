@@ -21,7 +21,7 @@ def build_ranking(conn, module_id=None):
         """SELECT id_usuario,
                SUM(puntuacion) as puntos_totales,
                COUNT(*) as retos_completados,
-               AVG(precision) as precision_promedio,
+               AVG(`precision`) as precision_promedio,
                AVG(tiempo_total) as tiempo_promedio,
                SUM(respuestas_correctas) as respuestas_correctas,
                SUM(respuestas_incorrectas) as respuestas_incorrectas

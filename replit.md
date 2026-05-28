@@ -38,7 +38,7 @@ Key field names:
 
 - Docente: `docente1` / `123456` (Prof. Carlos Mendoza)
 - Estudiante 1er año: `ana_torres` / `123456`
-- Estudiante 2do año: `luis_p` / `123456`
+- Estudiante 2do año: `luis_L` / `123456`
 - Estudiante 3er año: `maria_s` / `123456`
 - Estudiante 1er año: `diego_f` / `123456`
 

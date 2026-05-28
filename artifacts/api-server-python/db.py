@@ -3,27 +3,16 @@ import pymysql
 import pymysql.cursors
 from contextlib import contextmanager
 
+
 def get_connection():
-    db_url = os.environ.get("DATABASE_URL", "")
-    host = os.environ.get("DB_HOST", "localhost")
+    host = os.environ.get("DB_HOST", "127.0.0.1")
     port = int(os.environ.get("DB_PORT", "3306"))
     user = os.environ.get("DB_USER", "root")
-    password = os.environ.get("DB_PASSWORD", "")
+    password = os.environ.get("DB_PASSWORD", "proyectodegrado3")
     database = os.environ.get("DB_NAME", "cerebrito")
+    socket = os.environ.get("MYSQL_SOCKET", "")
 
-    if db_url and db_url.startswith("mysql"):
-        import re
-        m = re.match(r"mysql(?:\+pymysql)?://([^:]+):([^@]*)@([^:/]+)(?::(\d+))?/(.+)", db_url)
-        if m:
-            user = m.group(1)
-            password = m.group(2)
-            host = m.group(3)
-            port = int(m.group(4)) if m.group(4) else 3306
-            database = m.group(5).split("?")[0]
-
-    conn = pymysql.connect(
-        host=host,
-        port=port,
+    kwargs = dict(
         user=user,
         password=password,
         database=database,
@@ -31,7 +20,13 @@ def get_connection():
         cursorclass=pymysql.cursors.DictCursor,
         autocommit=False,
     )
-    return conn
+    if socket and os.path.exists(socket):
+        kwargs["unix_socket"] = socket
+    else:
+        kwargs["host"] = host
+        kwargs["port"] = port
+
+    return pymysql.connect(**kwargs)
 
 
 @contextmanager
