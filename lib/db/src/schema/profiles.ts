@@ -43,8 +43,10 @@ export const perfilesTable = pgTable("perfiles", {
   creado_en: timestamp("creado_en").notNull().defaultNow(),
   // Ultimo nivel que intento el estudiante
   ultimo_nivel_intento: varchar("ultimo_nivel_intento", { length: 50 }),
-  // Historial de mejores puntajes por modulo almacenado como JSON
   mejor_puntaje_por_modulo: jsonb("mejor_puntaje_por_modulo"),
+  email: varchar("email", { length: 255 }),
+  reset_token: varchar("reset_token", { length: 255 }),
+  reset_token_expires_at: timestamp("reset_token_expires_at"),
 });
 
 // Schema de insercion: excluye id y campos con valores por defecto

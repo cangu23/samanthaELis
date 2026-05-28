@@ -40,14 +40,13 @@ router.get("/challenges", requireAuth, async (req, res) => {
       })
     );
 
-    // Retos personalizados (ID negativo para identificarlos en el cliente)
     const retosCustom = await db
       .select()
       .from(retosPersonalizadosTable)
       .where(
         idModulo
-          ? and(eq(retosPersonalizadosTable.activo, true), eq(retosPersonalizadosTable.id_modulo, idModulo))
-          : eq(retosPersonalizadosTable.activo, true)
+          ? and(eq(retosPersonalizadosTable.activo, true), eq(retosPersonalizadosTable.publicado, true), eq(retosPersonalizadosTable.id_modulo, idModulo))
+          : and(eq(retosPersonalizadosTable.activo, true), eq(retosPersonalizadosTable.publicado, true))
       );
 
     const customConInfo = await Promise.all(
@@ -329,6 +328,28 @@ router.put("/challenges/custom/:challengeId", requireAuth, requireDocente, async
     res.json({ ...actualizado, modulo, nivel });
   } catch (err) {
     req.log.error({ err }, "Error al actualizar reto personalizado");
+    res.status(500).json({ error: "server_error", message: "Error interno" });
+  }
+});
+
+// PATCH /challenges/custom/:challengeId/publish - Publicar o despublicar un reto personalizado
+router.patch("/challenges/custom/:challengeId/publish", requireAuth, requireDocente, async (req: AuthRequest, res) => {
+  try {
+    const challengeId = Number(req.params.challengeId);
+    const [reto] = await db.select().from(retosPersonalizadosTable).where(eq(retosPersonalizadosTable.id, challengeId));
+    if (!reto || reto.id_docente !== req.user!.id) {
+      res.status(404).json({ error: "not_found", message: "Reto no encontrado o sin permiso" });
+      return;
+    }
+    const nuevoEstado = !reto.publicado;
+    const [actualizado] = await db
+      .update(retosPersonalizadosTable)
+      .set({ publicado: nuevoEstado })
+      .where(eq(retosPersonalizadosTable.id, challengeId))
+      .returning();
+    res.json({ publicado: actualizado.publicado, message: nuevoEstado ? "Reto publicado" : "Reto despublicado" });
+  } catch (err) {
+    req.log.error({ err }, "Error al publicar/despublicar reto");
     res.status(500).json({ error: "server_error", message: "Error interno" });
   }
 });

@@ -20,6 +20,7 @@ export function RegisterPage() {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [grado, setGrado] = useState<string>("");
+  const [email, setEmail] = useState("");
   const [codigoDocente, setCodigoDocente] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [showDocente, setShowDocente] = useState(false);
@@ -65,6 +66,7 @@ export function RegisterPage() {
         rol,
         grado_bachillerato: rol === "estudiante" ? parseInt(grado) : undefined,
         codigo_docente: rol === "docente" ? codigoDocente.trim() : undefined,
+        email: email.trim() || undefined,
       });
       navigate("/dashboard");
     } catch (err: unknown) {
@@ -146,6 +148,19 @@ export function RegisterPage() {
                 </select>
               </div>
             )}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Correo electrónico <span className="text-muted-foreground text-xs">(opcional, para recuperar contraseña)</span></Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="tu@correo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                autoComplete="email"
+              />
+            </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="password">Contraseña</Label>

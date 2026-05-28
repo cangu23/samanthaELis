@@ -15,6 +15,7 @@ import { ProfilePage } from "@/paginas/ProfilePage";
 import { CreateChallengePage } from "@/paginas/CreateChallengePage";
 import { JuegosPage } from "@/paginas/JuegosPage";
 import { CompetirPage } from "@/paginas/CompetirPage";
+import { ForgotPasswordPage } from "@/paginas/ForgotPasswordPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,6 +100,10 @@ function AppRoutes() {
         <PublicRoute>
           <RegisterPage />
         </PublicRoute>
+      </Route>
+
+      <Route path="/forgot-password">
+        <ForgotPasswordPage />
       </Route>
 
       {/* Paginas protegidas */}

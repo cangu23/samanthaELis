@@ -123,7 +123,15 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm text-muted-foreground">
+          <div className="mt-3 text-center">
+            <Link href="/forgot-password">
+              <span className="text-sm text-muted-foreground hover:text-[#A855F7] transition-colors cursor-pointer">
+                ¿Olvidaste tu contraseña?
+              </span>
+            </Link>
+          </div>
+
+          <div className="mt-3 text-center text-sm text-muted-foreground">
             ¿No tienes cuenta?{" "}
             <Link href="/register">
               <span className="text-primary hover:underline cursor-pointer font-medium">

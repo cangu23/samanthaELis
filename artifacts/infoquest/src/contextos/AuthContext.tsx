@@ -34,6 +34,7 @@ interface AuthContextType {
     rol: "estudiante" | "docente";
     grado_bachillerato?: number;
     codigo_docente?: string;
+    email?: string;
   }) => Promise<void>;
   setUser: (user: Profile) => void;
 }
@@ -111,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     rol: "estudiante" | "docente";
     grado_bachillerato?: number;
     codigo_docente?: string;
+    email?: string;
   }) => {
     const response = await fetch("/api/auth/register", {
       method: "POST",

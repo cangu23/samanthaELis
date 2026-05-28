@@ -315,6 +315,7 @@ interface RetoPersonalizado {
   numero_preguntas: number;
   tiempo_limite: number;
   id_docente: number;
+  publicado: boolean;
   modulo: { nombre: string } | null;
   nivel: { nombre: string } | null;
 }
@@ -420,6 +421,16 @@ function TeacherDashboard() {
     navigator.clipboard.writeText(`${window.location.origin}/challenge/-${id}`);
     setCopiado(id);
     setTimeout(() => setCopiado(null), 2000);
+  };
+
+  const publicarReto = async (id: number) => {
+    try {
+      const res = await fetch(`/api/challenges/custom/${id}/publish`, { method: "PATCH", headers });
+      if (res.ok) {
+        const data = await res.json();
+        setMisRetos((prev) => prev.map((r) => r.id === id ? { ...r, publicado: data.publicado } : r));
+      }
+    } catch { /* silent */ }
   };
 
   if (!user) return null;
@@ -536,6 +547,19 @@ function TeacherDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={() => publicarReto(reto.id)}
+                      title={reto.publicado ? "Despublicar (ocultar de juegos)" : "Publicar (visible para estudiantes)"}
+                      className={cn(
+                        "p-1.5 rounded-lg text-xs font-semibold transition-all border",
+                        reto.publicado
+                          ? "text-[#22C55E] border-[#22C55E]/30 bg-[#22C55E]/10 hover:bg-[#22C55E]/20"
+                          : "text-muted-foreground border-white/10 hover:text-[#22C55E] hover:border-[#22C55E]/30 hover:bg-[#22C55E]/10"
+                      )}
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </button>
+
                     <button
                       onClick={() => copiarLink(reto.id)}
                       title="Copiar link del reto"

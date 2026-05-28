@@ -2,17 +2,45 @@
 // Usa bcrypt para hashear contrasenas y JWT para sesiones
 import { Router } from "express";
 import bcrypt from "bcrypt";
+import nodemailer from "nodemailer";
 import { db } from "@workspace/db";
 import { perfilesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { generarToken, requireAuth, type AuthRequest } from "../lib/auth";
+
+function generarToken6(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let token = "";
+  for (let i = 0; i < 6; i++) token += chars[Math.floor(Math.random() * chars.length)];
+  return token;
+}
+
+async function enviarEmailReset(email: string, token: string): Promise<boolean> {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const from = process.env.SMTP_FROM || user;
+  if (!host || !user || !pass) return false;
+  try {
+    const transporter = nodemailer.createTransport({ host, port: Number(process.env.SMTP_PORT || 587), auth: { user, pass } });
+    await transporter.sendMail({
+      from: `Cerebrito <${from}>`,
+      to: email,
+      subject: "Recuperación de contraseña - Cerebrito",
+      html: `<div style="font-family:sans-serif;max-width:400px;margin:auto"><h2 style="color:#0EA5E9">Cerebrito</h2><p>Tu código de recuperación de contraseña es:</p><div style="font-size:2rem;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#0f172a;color:#A855F7;border-radius:8px;font-family:monospace">${token}</div><p style="color:#666;font-size:0.875rem">Este código expira en 1 hora. Si no solicitaste este cambio, ignora este correo.</p></div>`,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 const router = Router();
 
 // POST /auth/register - Registrar un nuevo usuario (docente o estudiante)
 router.post("/auth/register", async (req, res) => {
   try {
-    const { nombre, usuario, password, rol, grado_bachillerato } = req.body;
+    const { nombre, usuario, password, rol, grado_bachillerato, email } = req.body;
 
     // Validaciones basicas
     if (!nombre || !usuario || !password || !rol) {
@@ -66,6 +94,7 @@ router.post("/auth/register", async (req, res) => {
         password_hash,
         rol,
         grado_bachillerato: rol === "estudiante" ? Number(grado_bachillerato) : null,
+        email: email || null,
       })
       .returning();
 
@@ -145,6 +174,53 @@ router.post("/auth/login", async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Error en login");
     res.status(500).json({ error: "server_error", message: "Error interno del servidor" });
+  }
+});
+
+// POST /auth/forgot-password - Solicitar token de recuperacion de contrasena
+router.post("/auth/forgot-password", async (req, res) => {
+  try {
+    const { usuario } = req.body;
+    if (!usuario) { res.status(400).json({ error: "validation_error", message: "Usuario requerido" }); return; }
+    const [perfil] = await db.select().from(perfilesTable).where(eq(perfilesTable.usuario, usuario));
+    if (!perfil) {
+      res.json({ message: "Si el usuario existe, recibirá instrucciones de recuperación" });
+      return;
+    }
+    const token = generarToken6();
+    const expiry = new Date(Date.now() + 60 * 60 * 1000);
+    await db.update(perfilesTable).set({ reset_token: token, reset_token_expires_at: expiry }).where(eq(perfilesTable.id, perfil.id));
+    let emailEnviado = false;
+    if (perfil.email) emailEnviado = await enviarEmailReset(perfil.email, token);
+    const isDev = process.env.NODE_ENV !== "production";
+    res.json({
+      message: "Si el usuario existe, recibirá instrucciones de recuperación",
+      ...(isDev && { dev_token: token }),
+      email_enviado: emailEnviado,
+    });
+  } catch (err) {
+    req.log.error({ err }, "Error en forgot-password");
+    res.status(500).json({ error: "server_error", message: "Error interno" });
+  }
+});
+
+// POST /auth/reset-password - Cambiar contrasena con token
+router.post("/auth/reset-password", async (req, res) => {
+  try {
+    const { token, nueva_password } = req.body;
+    if (!token || !nueva_password) { res.status(400).json({ error: "validation_error", message: "Token y nueva contraseña son requeridos" }); return; }
+    if (nueva_password.length < 6) { res.status(400).json({ error: "validation_error", message: "La contraseña debe tener al menos 6 caracteres" }); return; }
+    const [perfil] = await db.select().from(perfilesTable).where(eq(perfilesTable.reset_token, token));
+    if (!perfil || !perfil.reset_token_expires_at || perfil.reset_token_expires_at < new Date()) {
+      res.status(400).json({ error: "invalid_token", message: "El código es inválido o ha expirado" });
+      return;
+    }
+    const hash = await bcrypt.hash(nueva_password, 10);
+    await db.update(perfilesTable).set({ password_hash: hash, reset_token: null, reset_token_expires_at: null }).where(eq(perfilesTable.id, perfil.id));
+    res.json({ message: "Contraseña actualizada exitosamente" });
+  } catch (err) {
+    req.log.error({ err }, "Error en reset-password");
+    res.status(500).json({ error: "server_error", message: "Error interno" });
   }
 });
 

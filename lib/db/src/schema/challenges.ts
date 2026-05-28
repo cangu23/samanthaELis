@@ -85,7 +85,7 @@ export const retosPersonalizadosTable = pgTable("retos_personalizados", {
   tiempo_limite: integer("tiempo_limite").notNull().default(300),
   // Si el reto esta activo
   activo: boolean("activo").notNull().default(true),
-  // Fecha de creacion
+  publicado: boolean("publicado").notNull().default(false),
   creado_en: timestamp("creado_en").notNull().defaultNow(),
 });
 
