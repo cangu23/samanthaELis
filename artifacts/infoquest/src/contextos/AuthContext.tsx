@@ -7,6 +7,7 @@ import { setAuthTokenGetter } from "@workspace/api-client-react";
 interface Profile {
   id: number;
   nombre: string;
+  cedula: string;
   usuario: string;
   rol: "estudiante" | "docente";
   grado_bachillerato: number | null;
@@ -29,6 +30,7 @@ interface AuthContextType {
   logout: () => void;
   register: (data: {
     nombre: string;
+    cedula:string;
     usuario: string;
     password: string;
     rol: "estudiante" | "docente";
@@ -107,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Registra un nuevo usuario y lo autentica automaticamente
   const register = async (userData: {
     nombre: string;
+    cedula: string;
     usuario: string;
     password: string;
     rol: "estudiante" | "docente";

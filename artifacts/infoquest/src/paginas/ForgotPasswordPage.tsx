@@ -10,7 +10,7 @@ type Paso = "solicitar" | "resetear" | "listo";
 
 export function ForgotPasswordPage() {
   const [paso, setPaso] = useState<Paso>("solicitar");
-  const [usuario, setUsuario] = useState("");
+  const [cedula, setCedula] = useState("");
   const [token, setToken] = useState("");
   const [devToken, setDevToken] = useState<string | null>(null);
   const [nuevaPassword, setNuevaPassword] = useState("");
@@ -20,14 +20,14 @@ export function ForgotPasswordPage() {
 
   const solicitarReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!usuario.trim()) { setError("Ingresa tu nombre de usuario"); return; }
+    if (!cedula.trim()) { setError("Ingresa tu número de cédula"); return; }
     setLoading(true);
     setError("");
     try {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario: usuario.trim() }),
+        body: JSON.stringify({ cedula: cedula.trim() }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.message || "Error al procesar la solicitud"); return; }
@@ -82,7 +82,7 @@ export function ForgotPasswordPage() {
           </div>
           <h1 className="text-xl font-bold font-orbitron">Recuperar Contraseña</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {paso === "solicitar" && "Ingresa tu usuario para recibir un código"}
+            {paso === "solicitar" && "Ingresa tu cédula para recibir un código"}
             {paso === "resetear" && "Ingresa el código y tu nueva contraseña"}
             {paso === "listo" && "Contraseña actualizada exitosamente"}
           </p>
@@ -98,15 +98,15 @@ export function ForgotPasswordPage() {
                 </Alert>
               )}
               <div className="space-y-2">
-                <Label htmlFor="usuario">Nombre de usuario</Label>
+                <Label htmlFor="cedula">Número de cédula</Label>
                 <Input
-                  id="usuario"
-                  placeholder="tu_usuario"
-                  value={usuario}
-                  onChange={(e) => setUsuario(e.target.value)}
-                  autoComplete="username"
+                  id="cedula"
+                  placeholder="Ej: 1234567890"
+                  value={cedula}
+                  onChange={(e) => setCedula(e.target.value)}
                   disabled={loading}
                 />
+                <p className="text-xs text-muted-foreground">Ingresa la cédula con la que te registraste.</p>
               </div>
               <Button type="submit" className="w-full gap-2" disabled={loading}>
                 {loading ? (
@@ -135,7 +135,7 @@ export function ForgotPasswordPage() {
               )}
               {!devToken && (
                 <div className="p-3 rounded-xl bg-[#0EA5E9]/10 border border-[#0EA5E9]/30 text-sm text-[#0EA5E9]">
-                  Si el usuario existe y tiene un correo registrado, recibirá el código de recuperación.
+                  Si la cédula existe y tiene un correo registrado, recibirá el código de recuperación.
                 </div>
               )}
               {error && (
@@ -168,12 +168,8 @@ export function ForgotPasswordPage() {
                     disabled={loading}
                     className="pr-10"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    tabIndex={-1}
-                  >
+                  <button type="button" onClick={() => setShowPass(!showPass)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1}>
                     {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
@@ -184,9 +180,7 @@ export function ForgotPasswordPage() {
                     <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     Actualizando...
                   </span>
-                ) : (
-                  "Cambiar contraseña"
-                )}
+                ) : "Cambiar contraseña"}
               </Button>
             </form>
           )}
@@ -201,9 +195,7 @@ export function ForgotPasswordPage() {
                 <p className="text-muted-foreground text-sm mt-1">Ya puedes iniciar sesión con tu nueva contraseña.</p>
               </div>
               <Link href="/login">
-                <Button className="w-full gap-2 mt-2">
-                  Iniciar sesión
-                </Button>
+                <Button className="w-full gap-2 mt-2">Iniciar sesión</Button>
               </Link>
             </div>
           )}
@@ -212,8 +204,7 @@ export function ForgotPasswordPage() {
             <div className="mt-4 text-center">
               <Link href="/login">
                 <span className="text-sm text-muted-foreground hover:text-white transition-colors flex items-center justify-center gap-1 cursor-pointer">
-                  <ArrowLeft className="w-3 h-3" />
-                  Volver al login
+                  <ArrowLeft className="w-3 h-3" />Volver al login
                 </span>
               </Link>
             </div>

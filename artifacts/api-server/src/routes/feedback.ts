@@ -2,26 +2,31 @@
 // Los docentes pueden enviar mensajes personalizados a los estudiantes
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { feedbackDocenteTable, perfilesTable } from "@workspace/db";
+import { feedbackDocenteTable, perfilesTable, tipoFeedbackEnum } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth, requireDocente, type AuthRequest } from "../lib/auth";
+import { z } from "zod";
 
 const router = Router();
+
+// Zod schema for validating the request body when sending feedback
+const createFeedbackInputSchema = z.object({
+  id_estudiante: z.number().int().positive({ message: "ID de estudiante debe ser un número entero positivo." }),
+  contenido: z.string().min(1, { message: "El contenido del feedback no puede estar vacío." }),
+  tipo: z.enum(tipoFeedbackEnum.enumValues, { message: "Tipo de feedback inválido." }),
+});
 
 // POST /feedback - Enviar feedback a un estudiante (solo docentes)
 router.post("/feedback", requireAuth, requireDocente, async (req: AuthRequest, res) => {
   try {
-    const { id_estudiante, contenido, tipo } = req.body;
+    const validationResult = createFeedbackInputSchema.safeParse(req.body);
 
-    if (!id_estudiante || !contenido || !tipo) {
-      res.status(400).json({ error: "validation_error", message: "Campos requeridos faltantes" });
+    if (!validationResult.success) {
+      res.status(400).json({ error: "validation_error", message: validationResult.error.errors.map(e => e.message).join(", ") });
       return;
     }
 
-    if (!["mejora", "felicitacion", "advertencia", "general"].includes(tipo)) {
-      res.status(400).json({ error: "validation_error", message: "Tipo de feedback invalido" });
-      return;
-    }
+    const { id_estudiante, contenido, tipo } = validationResult.data;
 
     // Verifica que el destinatario existe y es estudiante
     const [estudiante] = await db

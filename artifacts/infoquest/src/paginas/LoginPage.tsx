@@ -41,7 +41,6 @@ export function LoginPage() {
       <div className="fixed inset-0 cyber-grid opacity-20 pointer-events-none" />
 
       <div className="page-enter relative z-10 w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-flex items-center gap-2 mb-4 cursor-pointer">
@@ -59,7 +58,6 @@ export function LoginPage() {
           </p>
         </div>
 
-        {/* Card del formulario */}
         <div className="glass-card rounded-2xl p-6">
           <h1 className="text-xl font-bold mb-6 text-center">Iniciar Sesion</h1>
 
@@ -72,7 +70,9 @@ export function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="usuario">Usuario</Label>
+              <Label htmlFor="usuario">
+                Usuario <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="usuario"
                 type="text"
@@ -85,7 +85,9 @@ export function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">
+                Contraseña <span className="text-red-500">*</span>
+              </Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -140,7 +142,6 @@ export function LoginPage() {
             </Link>
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ import {
   retosTable,
   alertasTable,
 } from "@workspace/db";
-import { eq, desc, avg, sum, count } from "drizzle-orm";
+import { eq, desc, avg, sum, count, sql } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../lib/auth";
 
 const router = Router();
@@ -66,16 +66,8 @@ router.post("/results", requireAuth, async (req: AuthRequest, res) => {
       await db
         .update(perfilesTable)
         .set({
-          puntos_totales: await db
-            .select({ pts: sum(resultadosTable.puntuacion) })
-            .from(resultadosTable)
-            .where(eq(resultadosTable.id_usuario, req.user!.id))
-            .then((r) => Number(r[0]?.pts || 0)),
-          retos_completados: await db
-            .select({ cnt: count() })
-            .from(resultadosTable)
-            .where(eq(resultadosTable.id_usuario, req.user!.id))
-            .then((r) => Number(r[0]?.cnt || 0)),
+          puntos_totales: sql`${perfilesTable.puntos_totales} + ${Number(puntuacion)}`,
+          retos_completados: sql`${perfilesTable.retos_completados} + 1`,
         })
         .where(eq(perfilesTable.id, req.user!.id));
     }

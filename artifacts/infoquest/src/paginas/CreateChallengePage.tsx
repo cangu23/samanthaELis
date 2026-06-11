@@ -1,5 +1,5 @@
 // Pagina para que los docentes creen retos personalizados
-import { useState } from "react";
+import { useState, useEffect } from "react"; // 👈 agrega useEffect
 import { useLocation } from "wouter";
 import { useAuth } from "@/contextos/AuthContext";
 import { Button } from "@/componentes/interfaz/button";
@@ -34,9 +34,17 @@ const TIPOS_JUEGO: { value: TipoJuego; label: string; icon: React.ElementType; d
   { value: "crossword",        label: "Crucigrama",          icon: Grid3x3,   descripcion: "Palabras con pistas para completar" },
 ];
 
-// Clase comun para los <select> nativos
+const tipoMap: Record<string, string> = {
+  "multiple_choice": "multiple",
+  "true_false": "verdadero_falso",
+  "code_completion": "completar",
+};
+
 const selectCls =
   "w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/60 transition-colors appearance-none cursor-pointer";
+
+// ✅ Clave para el borrador en localStorage
+const BORRADOR_KEY = "cerebrito_borrador_reto";
 
 export function CreateChallengePage() {
   const { user } = useAuth();
@@ -44,30 +52,56 @@ export function CreateChallengePage() {
   const token = localStorage.getItem("cerebrito_token");
   const headers = { Authorization: `Bearer ${token}` };
 
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [tipoJuego, setTipoJuego] = useState<TipoJuego>("quiz");
-  const [tiempoLimite, setTiempoLimite] = useState("300");
-  const [modulo, setModulo] = useState("1");
+  // ✅ Inicializa desde localStorage si hay borrador guardado
+  const borrador = (() => {
+    try { return JSON.parse(localStorage.getItem(BORRADOR_KEY) || "{}"); } catch { return {}; }
+  })();
 
-  const [preguntas, setPreguntas] = useState<PreguntaQuiz[]>([
-    { texto: "", tipo: "multiple_choice", opciones: ["", "", "", ""], respuesta_correcta: "", explicacion: "", puntos: 10 },
-  ]);
-  const [palabrasSopa, setPalabrasSopa] = useState<PalabraSopa[]>([
-    { palabra: "", pista: "" }, { palabra: "", pista: "" }, { palabra: "", pista: "" },
-  ]);
-  const [palabrasCrucigrama, setPalabrasCrucigrama] = useState<PalabraCrucigrama[]>([
-    { palabra: "", pista: "" }, { palabra: "", pista: "" }, { palabra: "", pista: "" },
-  ]);
+  const [nombre, setNombre] = useState(borrador.nombre || "");
+  const [descripcion, setDescripcion] = useState(borrador.descripcion || "");
+  const [tipoJuego, setTipoJuego] = useState<TipoJuego>(borrador.tipoJuego || "quiz");
+  const [tiempoLimite, setTiempoLimite] = useState(borrador.tiempoLimite || "300");
+  const [modulo, setModulo] = useState(borrador.modulo || "1");
+
+  const [preguntas, setPreguntas] = useState<PreguntaQuiz[]>(
+    borrador.preguntas || [{ texto: "", tipo: "multiple_choice", opciones: ["", "", "", ""], respuesta_correcta: "", explicacion: "", puntos: 10 }]
+  );
+  const [palabrasSopa, setPalabrasSopa] = useState<PalabraSopa[]>(
+    borrador.palabrasSopa || [{ palabra: "", pista: "" }, { palabra: "", pista: "" }, { palabra: "", pista: "" }]
+  );
+  const [palabrasCrucigrama, setPalabrasCrucigrama] = useState<PalabraCrucigrama[]>(
+    borrador.palabrasCrucigrama || [{ palabra: "", pista: "" }, { palabra: "", pista: "" }, { palabra: "", pista: "" }]
+  );
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [retoCreado, setRetoCreado] = useState<{ id: number; nombre: string } | null>(null);
   const [copiado, setCopiado] = useState(false);
+  const [borradorGuardado, setBorradorGuardado] = useState(false); // ✅ indicador visual
 
   const esJuegoConPreguntas = ["quiz", "code_challenge", "security_puzzle", "speed_race"].includes(tipoJuego);
   const esSopa = tipoJuego === "word_search";
   const esCrucigrama = tipoJuego === "crossword";
+
+  // ✅ Guarda borrador automáticamente cada vez que cambia algo
+  useEffect(() => {
+    const datos = { nombre, descripcion, tipoJuego, tiempoLimite, modulo, preguntas, palabrasSopa, palabrasCrucigrama };
+    localStorage.setItem(BORRADOR_KEY, JSON.stringify(datos));
+    setBorradorGuardado(true);
+    const t = setTimeout(() => setBorradorGuardado(false), 1500);
+    return () => clearTimeout(t);
+  }, [nombre, descripcion, tipoJuego, tiempoLimite, modulo, preguntas, palabrasSopa, palabrasCrucigrama]);
+
+  // ✅ Calcula si el formulario está listo para publicar
+  const formularioListo = (() => {
+    if (!nombre.trim() || !descripcion.trim()) return false;
+    if (esJuegoConPreguntas) {
+      return preguntas.every((p) => p.texto.trim() && p.respuesta_correcta.trim());
+    }
+    if (esSopa) return palabrasSopa.filter((p) => p.palabra.trim()).length >= 3;
+    if (esCrucigrama) return palabrasCrucigrama.filter((p) => p.palabra.trim() && p.pista.trim()).length >= 3;
+    return true;
+  })();
 
   if (user?.rol !== "docente") {
     return (
@@ -78,7 +112,6 @@ export function CreateChallengePage() {
     );
   }
 
-  // Handlers preguntas
   const addPregunta = () =>
     setPreguntas([...preguntas, { texto: "", tipo: "multiple_choice", opciones: ["", "", "", ""], respuesta_correcta: "", explicacion: "", puntos: 10 }]);
   const removePregunta = (i: number) => { if (preguntas.length > 1) setPreguntas(preguntas.filter((_, idx) => idx !== i)); };
@@ -99,14 +132,12 @@ export function CreateChallengePage() {
     setPreguntas(updated);
   };
 
-  // Handlers sopa
   const addPalabraSopa = () => setPalabrasSopa([...palabrasSopa, { palabra: "", pista: "" }]);
   const removePalabraSopa = (i: number) => { if (palabrasSopa.length > 1) setPalabrasSopa(palabrasSopa.filter((_, idx) => idx !== i)); };
   const updatePalabraSopa = (i: number, field: keyof PalabraSopa, value: string) => {
     const updated = [...palabrasSopa]; updated[i][field] = value; setPalabrasSopa(updated);
   };
 
-  // Handlers crucigrama
   const addPalabraCrucigrama = () => setPalabrasCrucigrama([...palabrasCrucigrama, { palabra: "", pista: "" }]);
   const removePalabraCrucigrama = (i: number) => { if (palabrasCrucigrama.length > 1) setPalabrasCrucigrama(palabrasCrucigrama.filter((_, idx) => idx !== i)); };
   const updatePalabraCrucigrama = (i: number, field: keyof PalabraCrucigrama, value: string) => {
@@ -169,20 +200,24 @@ export function CreateChallengePage() {
           puntos_maximos: preguntasFinales.reduce((s, p) => s + p.puntos, 0),
           numero_preguntas: preguntasFinales.length,
           preguntas: preguntasFinales.map((p) => ({
-            ...p, dificultad: "medio", opciones: p.opciones.filter((o) => o.trim()),
+            ...p,
+            tipo: tipoMap[p.tipo] || "multiple",
+            dificultad: "medio",
+            opciones: p.opciones.filter((o) => o.trim()),
           })),
         }),
       });
 
-      if (!res.ok) { const err = await res.json(); throw new Error(err.message || "Error al crear el reto"); }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || err.message || "Error al crear el reto"); }
       const data = await res.json();
+      // ✅ Limpia el borrador al publicar exitosamente
+      localStorage.removeItem(BORRADOR_KEY);
       setRetoCreado({ id: data.id || data.reto?.id, nombre: nombre.trim() });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al crear el reto");
     } finally { setLoading(false); }
   };
 
-  // Pantalla de exito
   if (retoCreado) {
     return (
       <div className="max-w-xl mx-auto text-center py-16 space-y-6 page-enter">
@@ -238,6 +273,12 @@ export function CreateChallengePage() {
           <h1 className="text-xl font-bold">Crear Reto Personalizado</h1>
           <p className="text-muted-foreground text-sm">Diseña un reto con tus propias preguntas</p>
         </div>
+        {/* ✅ Indicador de borrador guardado */}
+        {borradorGuardado && (
+          <span className="ml-auto text-xs text-green-500 flex items-center gap-1">
+            <Check className="w-3 h-3" /> Borrador guardado
+          </span>
+        )}
       </div>
 
       {error && (
@@ -248,43 +289,32 @@ export function CreateChallengePage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Informacion general */}
         <div className="glass-card rounded-xl p-5 space-y-4">
           <h2 className="text-base font-semibold flex items-center gap-2">
             <Zap className="w-4 h-4 text-primary" />Informacion del Reto
           </h2>
-
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>Nombre del Reto</Label>
+              {/* ✅ Asterisco en campo obligatorio */}
+              <Label>Nombre del Reto <span className="text-red-500">*</span></Label>
               <Input placeholder="ej. Quiz de Variables Python" value={nombre} onChange={(e) => setNombre(e.target.value)} />
             </div>
-
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>Descripcion</Label>
+              {/* ✅ Asterisco en campo obligatorio */}
+              <Label>Descripcion <span className="text-red-500">*</span></Label>
               <Textarea placeholder="Describe el objetivo del reto..." value={descripcion} onChange={(e) => setDescripcion(e.target.value)} rows={2} className="resize-none" />
             </div>
-
             <div className="space-y-1.5">
-              <Label>Dirigido a (Grado)</Label>
-              <select
-                value={modulo}
-                onChange={(e) => setModulo(e.target.value)}
-                className={selectCls}
-              >
+              <Label>Dirigido a (Grado) <span className="text-red-500">*</span></Label>
+              <select value={modulo} onChange={(e) => setModulo(e.target.value)} className={selectCls}>
                 <option value="1">1° de Bachillerato</option>
                 <option value="2">2° de Bachillerato</option>
                 <option value="3">3° de Bachillerato</option>
               </select>
             </div>
-
             <div className="space-y-1.5">
-              <Label>Tiempo Limite</Label>
-              <select
-                value={tiempoLimite}
-                onChange={(e) => setTiempoLimite(e.target.value)}
-                className={selectCls}
-              >
+              <Label>Tiempo Limite <span className="text-red-500">*</span></Label>
+              <select value={tiempoLimite} onChange={(e) => setTiempoLimite(e.target.value)} className={selectCls}>
                 <option value="120">2 minutos</option>
                 <option value="300">5 minutos</option>
                 <option value="600">10 minutos</option>
@@ -294,22 +324,15 @@ export function CreateChallengePage() {
           </div>
         </div>
 
-        {/* Tipo de juego */}
         <div className="glass-card rounded-xl p-5 space-y-3">
-          <h2 className="text-base font-semibold">Tipo de Juego</h2>
+          <h2 className="text-base font-semibold">Tipo de Juego <span className="text-red-500">*</span></h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {TIPOS_JUEGO.map((tipo) => {
               const Icon = tipo.icon;
               const activo = tipoJuego === tipo.value;
               return (
-                <button
-                  key={tipo.value}
-                  type="button"
-                  onClick={() => { setTipoJuego(tipo.value); setError(""); }}
-                  className={`flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 transition-all text-left ${
-                    activo ? "border-primary bg-primary/10" : "border-border/40 hover:border-border"
-                  }`}
-                >
+                <button key={tipo.value} type="button" onClick={() => { setTipoJuego(tipo.value); setError(""); }}
+                  className={`flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 transition-all text-left ${activo ? "border-primary bg-primary/10" : "border-border/40 hover:border-border"}`}>
                   <Icon className={`w-5 h-5 ${activo ? "text-primary" : "text-muted-foreground"}`} />
                   <span className={`text-sm font-medium ${activo ? "text-primary" : ""}`}>{tipo.label}</span>
                   <span className="text-xs text-muted-foreground leading-tight">{tipo.descripcion}</span>
@@ -319,49 +342,45 @@ export function CreateChallengePage() {
           </div>
         </div>
 
-        {/* Quiz / Codigo / Seguridad / Carrera */}
         {esJuegoConPreguntas && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold">Preguntas ({preguntas.length})</h2>
+              <h2 className="text-base font-semibold">Preguntas ({preguntas.length}) <span className="text-red-500">*</span></h2>
               <Button type="button" variant="outline" size="sm" onClick={addPregunta} className="gap-2">
                 <PlusCircle className="w-4 h-4" />Agregar Pregunta
               </Button>
             </div>
-
             {preguntas.map((pregunta, pIndex) => (
               <div key={pIndex} className="glass-card rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-xs font-bold text-primary">
-                      {pIndex + 1}
-                    </div>
+                    <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-xs font-bold text-primary">{pIndex + 1}</div>
                     <span className="text-sm font-medium">Pregunta {pIndex + 1}</span>
                   </div>
                   <Button type="button" variant="ghost" size="sm" onClick={() => removePregunta(pIndex)} disabled={preguntas.length <= 1} className="text-destructive hover:text-destructive h-7 w-7 p-0">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div className="sm:col-span-2 space-y-1.5">
-                    <Label>{tipoJuego === "code_challenge" ? "Fragmento de Codigo / Pregunta" : "Texto de la Pregunta"}</Label>
+                    <Label>{tipoJuego === "code_challenge" ? "Fragmento de Codigo / Pregunta" : "Texto de la Pregunta"} <span className="text-red-500">*</span></Label>
                     <Textarea
                       placeholder={tipoJuego === "code_challenge" ? "def suma(a, b):\n    return ___" : "Escribe la pregunta..."}
-                      value={pregunta.texto}
-                      onChange={(e) => updatePregunta(pIndex, "texto", e.target.value)}
+                      value={pregunta.texto} onChange={(e) => updatePregunta(pIndex, "texto", e.target.value)}
                       rows={tipoJuego === "code_challenge" ? 3 : 2}
-                      className={`resize-none text-sm ${tipoJuego === "code_challenge" ? "font-mono" : ""}`}
-                    />
+                      className={`resize-none text-sm ${tipoJuego === "code_challenge" ? "font-mono" : ""}`} />
                   </div>
-
+                  <div className="space-y-1.5">
+                    <Label>Tipo de Pregunta</Label>
+                    <select value={pregunta.tipo} onChange={(e) => updatePregunta(pIndex, "tipo", e.target.value)} className={selectCls}>
+                      <option value="multiple_choice">Opcion Multiple</option>
+                      <option value="true_false">Verdadero / Falso</option>
+                      <option value="code_completion">Completar</option>
+                    </select>
+                  </div>
                   <div className="space-y-1.5">
                     <Label>Puntos</Label>
-                    <select
-                      value={pregunta.puntos.toString()}
-                      onChange={(e) => updatePregunta(pIndex, "puntos", parseInt(e.target.value))}
-                      className={selectCls}
-                    >
+                    <select value={pregunta.puntos.toString()} onChange={(e) => updatePregunta(pIndex, "puntos", parseInt(e.target.value))} className={selectCls}>
                       <option value="5">5 puntos</option>
                       <option value="10">10 puntos</option>
                       <option value="15">15 puntos</option>
@@ -369,56 +388,40 @@ export function CreateChallengePage() {
                     </select>
                   </div>
                 </div>
-
                 {pregunta.tipo !== "true_false" && (
                   <div className="space-y-2">
-                    <Label>Opciones de Respuesta</Label>
+                    <Label>Opciones de Respuesta <span className="text-red-500">*</span></Label>
                     {pregunta.opciones.map((opcion, oIndex) => (
                       <div key={oIndex} className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-muted/50 border border-border/50 flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">
                           {String.fromCharCode(65 + oIndex)}
                         </div>
-                        <Input
-                          placeholder={`Opcion ${String.fromCharCode(65 + oIndex)}`}
-                          value={opcion}
-                          onChange={(e) => updateOpcion(pIndex, oIndex, e.target.value)}
-                          className="text-sm"
-                        />
+                        <Input placeholder={`Opcion ${String.fromCharCode(65 + oIndex)}`} value={opcion}
+                          onChange={(e) => updateOpcion(pIndex, oIndex, e.target.value)} className="text-sm" />
                       </div>
                     ))}
                   </div>
                 )}
-
                 <div className="space-y-1.5">
-                  <Label>Respuesta Correcta</Label>
-                  <Input
-                    placeholder="Escribe exactamente como aparece en las opciones"
-                    value={pregunta.respuesta_correcta}
-                    onChange={(e) => updatePregunta(pIndex, "respuesta_correcta", e.target.value)}
-                    className="text-sm"
-                  />
+                  <Label>Respuesta Correcta <span className="text-red-500">*</span></Label>
+                  <Input placeholder="Escribe exactamente como aparece en las opciones" value={pregunta.respuesta_correcta}
+                    onChange={(e) => updatePregunta(pIndex, "respuesta_correcta", e.target.value)} className="text-sm" />
                 </div>
-
                 <div className="space-y-1.5">
                   <Label>Explicacion (opcional)</Label>
-                  <Input
-                    placeholder="Explica por que esta es la respuesta correcta..."
-                    value={pregunta.explicacion}
-                    onChange={(e) => updatePregunta(pIndex, "explicacion", e.target.value)}
-                    className="text-sm"
-                  />
+                  <Input placeholder="Explica por que esta es la respuesta correcta..." value={pregunta.explicacion}
+                    onChange={(e) => updatePregunta(pIndex, "explicacion", e.target.value)} className="text-sm" />
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Sopa de Letras */}
         {esSopa && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold">Palabras para la Sopa ({palabrasSopa.length})</h2>
+                <h2 className="text-base font-semibold">Palabras para la Sopa ({palabrasSopa.length}) <span className="text-red-500">*</span></h2>
                 <p className="text-xs text-muted-foreground mt-0.5">Minimo 3 palabras. Sin espacios, solo letras.</p>
               </div>
               <Button type="button" variant="outline" size="sm" onClick={addPalabraSopa} className="gap-2">
@@ -436,12 +439,15 @@ export function CreateChallengePage() {
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Palabra</Label>
-                    <Input placeholder="ej. VARIABLE" value={item.palabra} onChange={(e) => updatePalabraSopa(i, "palabra", e.target.value.toUpperCase().replace(/\s/g, ""))} className="text-sm font-mono uppercase" />
+                    <Label className="text-xs">Palabra <span className="text-red-500">*</span></Label>
+                    <Input placeholder="ej. VARIABLE" value={item.palabra}
+                      onChange={(e) => updatePalabraSopa(i, "palabra", e.target.value.toUpperCase().replace(/\s/g, ""))}
+                      className="text-sm font-mono uppercase" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">Pista (opcional)</Label>
-                    <Input placeholder="ej. Almacena datos en programacion" value={item.pista} onChange={(e) => updatePalabraSopa(i, "pista", e.target.value)} className="text-sm" />
+                    <Input placeholder="ej. Almacena datos en programacion" value={item.pista}
+                      onChange={(e) => updatePalabraSopa(i, "pista", e.target.value)} className="text-sm" />
                   </div>
                 </div>
               </div>
@@ -449,12 +455,11 @@ export function CreateChallengePage() {
           </div>
         )}
 
-        {/* Crucigrama */}
         {esCrucigrama && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold">Palabras del Crucigrama ({palabrasCrucigrama.length})</h2>
+                <h2 className="text-base font-semibold">Palabras del Crucigrama ({palabrasCrucigrama.length}) <span className="text-red-500">*</span></h2>
                 <p className="text-xs text-muted-foreground mt-0.5">Cada palabra necesita una pista. Minimo 3.</p>
               </div>
               <Button type="button" variant="outline" size="sm" onClick={addPalabraCrucigrama} className="gap-2">
@@ -472,12 +477,15 @@ export function CreateChallengePage() {
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Respuesta (la palabra)</Label>
-                    <Input placeholder="ej. ALGORITMO" value={item.palabra} onChange={(e) => updatePalabraCrucigrama(i, "palabra", e.target.value.toUpperCase().replace(/\s/g, ""))} className="text-sm font-mono uppercase" />
+                    <Label className="text-xs">Respuesta (la palabra) <span className="text-red-500">*</span></Label>
+                    <Input placeholder="ej. ALGORITMO" value={item.palabra}
+                      onChange={(e) => updatePalabraCrucigrama(i, "palabra", e.target.value.toUpperCase().replace(/\s/g, ""))}
+                      className="text-sm font-mono uppercase" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Pista</Label>
-                    <Input placeholder="ej. Secuencia de pasos para resolver un problema" value={item.pista} onChange={(e) => updatePalabraCrucigrama(i, "pista", e.target.value)} className="text-sm" />
+                    <Label className="text-xs">Pista <span className="text-red-500">*</span></Label>
+                    <Input placeholder="ej. Secuencia de pasos para resolver un problema" value={item.pista}
+                      onChange={(e) => updatePalabraCrucigrama(i, "pista", e.target.value)} className="text-sm" />
                   </div>
                 </div>
               </div>
@@ -491,11 +499,21 @@ export function CreateChallengePage() {
               Tipo seleccionado: <strong>{tipoInfo.label}</strong> — {tipoInfo.descripcion}
             </p>
           )}
-          <Button type="submit" size="lg" className="w-full gap-2 neon-border" disabled={loading}>
+          {/* ✅ Botón gris si está incompleto, verde si está listo */}
+          <Button
+            type="submit"
+            size="lg"
+            className={`w-full gap-2 transition-colors ${
+              formularioListo
+                ? "bg-green-600 hover:bg-green-700 text-white neon-border"
+                : "bg-gray-500 hover:bg-gray-500 text-gray-300 cursor-not-allowed opacity-70"
+            }`}
+            disabled={loading}
+          >
             {loading
               ? <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
               : <PlusCircle className="w-5 h-5" />}
-            {loading ? "Creando Reto..." : "Publicar Reto"}
+            {loading ? "Creando Reto..." : formularioListo ? "Publicar Reto ✓" : "Completa el formulario para publicar"}
           </Button>
         </div>
       </form>

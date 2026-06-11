@@ -154,7 +154,7 @@ router.post("/auth/login", async (req, res) => {
         // Entro ayer — dia consecutivo, sube la racha
         nuevaRacha = (perfil.racha_dias || 0) + 1;
       } else {
-        // Falto mas de un dia — pierde la racha
+        // Falto mas de un auth.tsdia — pierde la racha
         nuevaRacha = 1;
       }
     }

@@ -13,6 +13,7 @@ import {
 } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 import { requireAuth, requireDocente, type AuthRequest } from "../lib/auth";
+import { z } from "zod";
 
 const router = Router();
 
@@ -203,15 +204,29 @@ router.post("/challenges/:challengeId/check-answer", requireAuth, async (req, re
   }
 });
 
+// Esquema de validacion para retos personalizados
+const createCustomChallengeSchema = z.object({
+  nombre: z.string().min(3),
+  descripcion: z.string().min(5),
+  tipo_juego: z.string(),
+  id_modulo: z.coerce.number(),
+  id_nivel: z.coerce.number(),
+  puntos_maximos: z.number().optional().default(100),
+  numero_preguntas: z.number().optional().default(10),
+  tiempo_limite: z.number().optional().default(300),
+  preguntas: z.array(z.any()).optional(),
+});
+
 // POST /challenges/custom - Crear un reto personalizado (solo docentes)
 router.post("/challenges/custom", requireAuth, requireDocente, async (req: AuthRequest, res) => {
   try {
-    const { nombre, descripcion, tipo_juego, id_modulo, id_nivel, puntos_maximos, numero_preguntas, tiempo_limite, preguntas } = req.body;
-
-    if (!nombre || !tipo_juego || !id_modulo || !id_nivel) {
-      res.status(400).json({ error: "validation_error", message: "Campos requeridos faltantes" });
+    const validation = createCustomChallengeSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ error: "validation_error", message: "Datos de reto invalidos", details: validation.error.errors });
       return;
     }
+
+    const { nombre, descripcion, tipo_juego, id_modulo, id_nivel, puntos_maximos, numero_preguntas, tiempo_limite, preguntas } = validation.data;
 
     // Crea el reto personalizado en la base de datos
     const [nuevoReto] = await db

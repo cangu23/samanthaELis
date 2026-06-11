@@ -1,0 +1,37 @@
+-- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
+--
+-- Host: localhost    Database: cerebrito
+-- ------------------------------------------------------
+-- Server version	8.0.46
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Dumping data for table `perfiles`
+--
+
+LOCK TABLES `perfiles` WRITE;
+/*!40000 ALTER TABLE `perfiles` DISABLE KEYS */;
+INSERT INTO `perfiles` VALUES (1,'val',NULL,'val','$2b$10$cal8bzHSXKbrlyzR/o0ZLOQZ3blhh0ZieBjpuI9qpqFpxjbkXgbgO','estudiante',3,'karlatipantuna68@gmail.com',NULL,484,1,8,'2026-06-09 22:07:40','2026-05-28 19:24:31','SGKVF7','2026-06-04 19:13:44',NULL,NULL),(3,'karla',NULL,'prof karla','$2b$10$yBx937QQjmaBu.XaAsBepO1tDw6FiBILO0510Z4STgr6HjePV4/Si','docente',NULL,NULL,NULL,116,1,6,'2026-06-09 23:52:17','2026-06-03 19:18:47',NULL,NULL,NULL,NULL),(4,'elizabeth remache',NULL,'Elizabeth12','$2b$10$X0C.5kKoJVIQrLzgi1qTt.3x9htV5Wnfa.adeqngQEOqSyJ.k4fyi','estudiante',2,'remacheelizabeth757@gmail.com',NULL,40,0,2,NULL,'2026-06-04 13:16:49',NULL,NULL,NULL,NULL),(5,'Samantha Chipantaxi',NULL,'samixx','$2b$10$AVB0GkePwGiwBhme8wNx6ujRd9oUFLyD.0Ns6t/UqdvZlZ4DxWJ2i','estudiante',1,'samanthachipantaxi7@gmail.com',NULL,30,0,1,NULL,'2026-06-04 13:31:37',NULL,NULL,NULL,NULL),(6,'Klever',NULL,'Klever Alexander','$2b$10$h6Q3fmu8No6R2PDU1Zc35edNWShjdpbjeqfBdLhhXR7s1stYtFthK','estudiante',3,'pineidaklever@gmail.com',NULL,40,0,1,NULL,'2026-06-04 14:23:23',NULL,NULL,NULL,NULL),(7,'Fernando Mendez',NULL,'Fer','$2b$10$cIaqTB2wXQCTAgotoaesK.2v52yDKHP6DK4juqo3FqhjCREo2KKbG','docente',NULL,NULL,NULL,0,0,0,NULL,'2026-06-04 14:56:10',NULL,NULL,NULL,NULL),(8,'Dani Carina',NULL,'Rigoberto','$2b$10$I4OzL21moF7fqqAyodete.pVtD/8PaT9leL16TgZYzSIfTWqpSRJq','docente',NULL,'ejemplo@gmail.com',NULL,0,0,0,NULL,'2026-06-04 15:16:10',NULL,NULL,NULL,NULL),(9,'leslie',NULL,'leslie','$2b$10$py.zwNuwVHhibPTDA7dHlOK5QHQ9MNufGtsP24zPef6Fn6fI5xhm6','estudiante',3,'leslie@gmail.com',NULL,0,0,0,NULL,'2026-06-04 16:43:58',NULL,NULL,NULL,NULL);
+/*!40000 ALTER TABLE `perfiles` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-06-10 13:19:10

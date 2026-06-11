@@ -1,6 +1,5 @@
 import os
 import random
-import string
 import bcrypt
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, Depends
@@ -11,7 +10,7 @@ from auth_utils import crear_token, get_current_user
 
 router = APIRouter()
 
-DOCENTE_CODE = os.environ.get("DOCENTE_CODE", "")
+DOCENTE_CODE = os.environ.get("DOCENTE_CODE", "CUMBAYA2025")
 
 CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
@@ -52,14 +51,14 @@ async def enviar_email_reset(email: str, token: str) -> bool:
         from email.mime.text import MIMEText
         from email.mime.multipart import MIMEMultipart
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Recuperación de contraseña - Cerebrito"
+        msg["Subject"] = "Recuperacion de contrasena - Cerebrito"
         msg["From"] = f"Cerebrito <{smtp_from}>"
         msg["To"] = email
         html = f"""<div style="font-family:sans-serif;max-width:400px;margin:auto">
 <h2 style="color:#0EA5E9">Cerebrito</h2>
-<p>Tu código de recuperación de contraseña es:</p>
+<p>Tu codigo de recuperacion de contrasena es:</p>
 <div style="font-size:2rem;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#0f172a;color:#A855F7;border-radius:8px;font-family:monospace">{token}</div>
-<p style="color:#666;font-size:0.875rem">Este código expira en 1 hora. Si no solicitaste este cambio, ignora este correo.</p>
+<p style="color:#666;font-size:0.875rem">Este codigo expira en 1 hora. Si no solicitaste este cambio, ignora este correo.</p>
 </div>"""
         msg.attach(MIMEText(html, "html"))
         with smtplib.SMTP(smtp_host, smtp_port) as server:
@@ -79,6 +78,7 @@ class RegisterBody(BaseModel):
     grado_bachillerato: Optional[int] = None
     codigo_docente: Optional[str] = None
     email: Optional[str] = None
+    cedula: Optional[str] = None
 
 
 @router.post("/auth/register", status_code=201)
@@ -88,7 +88,7 @@ def register(body: RegisterBody):
 
     if body.rol == "docente":
         if not DOCENTE_CODE or body.codigo_docente != DOCENTE_CODE:
-            raise HTTPException(403, "El código de docente es incorrecto")
+            raise HTTPException(403, "El codigo de docente es incorrecto")
     elif body.rol != "estudiante":
         raise HTTPException(403, "Rol no permitido")
 
@@ -103,15 +103,20 @@ def register(body: RegisterBody):
         if existing:
             raise HTTPException(400, "El nombre de usuario ya esta en uso")
 
+        if body.cedula:
+            existing_cedula = fetchone(conn, "SELECT id FROM perfiles WHERE cedula = %s", (body.cedula,))
+            if existing_cedula:
+                raise HTTPException(400, "La cedula ya esta registrada")
+
         password_hash = hash_password(body.password)
         grado = body.grado_bachillerato if body.rol == "estudiante" else None
 
         with conn.cursor() as cur:
             cur.execute(
-                """INSERT INTO perfiles (nombre, usuario, password_hash, rol, grado_bachillerato, email,
+                """INSERT INTO perfiles (nombre, cedula, usuario, password_hash, rol, grado_bachillerato, email,
                    puntos_totales, racha_dias, retos_completados)
-                   VALUES (%s, %s, %s, %s, %s, %s, 0, 0, 0)""",
-                (body.nombre, body.usuario, password_hash, body.rol, grado, body.email or None),
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, 0, 0, 0)""",
+                (body.nombre, body.cedula or None, body.usuario, password_hash, body.rol, grado, body.email or None),
             )
             conn.commit()
             nuevo_id = cur.lastrowid
@@ -130,15 +135,15 @@ class LoginBody(BaseModel):
 @router.post("/auth/login")
 def login(body: LoginBody):
     if not body.usuario or not body.password:
-        raise HTTPException(400, "Usuario y contraseña son requeridos")
+        raise HTTPException(400, "Usuario y contrasena son requeridos")
 
     with get_db() as conn:
         perfil = fetchone(conn, "SELECT * FROM perfiles WHERE usuario = %s", (body.usuario,))
         if not perfil:
-            raise HTTPException(401, "Usuario o contraseña incorrectos")
+            raise HTTPException(401, "Usuario o contrasena incorrectos")
 
         if not check_password(body.password, perfil["password_hash"]):
-            raise HTTPException(401, "Usuario o contraseña incorrectos")
+            raise HTTPException(401, "Usuario o contrasena incorrectos")
 
         ahora = datetime.now(timezone.utc)
         nueva_racha = perfil.get("racha_dias") or 0
@@ -169,18 +174,18 @@ def login(body: LoginBody):
 
 
 class ForgotPasswordBody(BaseModel):
-    usuario: str
+    cedula: str
 
 
 @router.post("/auth/forgot-password")
 async def forgot_password(body: ForgotPasswordBody):
-    if not body.usuario:
-        raise HTTPException(400, "Usuario requerido")
+    if not body.cedula:
+        raise HTTPException(400, "Cedula requerida")
 
     with get_db() as conn:
-        perfil = fetchone(conn, "SELECT * FROM perfiles WHERE usuario = %s", (body.usuario,))
+        perfil = fetchone(conn, "SELECT * FROM perfiles WHERE cedula = %s", (body.cedula,))
         if not perfil:
-            return {"message": "Si el usuario existe, recibirá instrucciones de recuperación"}
+            return {"message": "Si la cedula existe, recibira instrucciones de recuperacion"}
 
         token = generar_token6()
         expiry = datetime.now(timezone.utc) + timedelta(hours=1)
@@ -193,7 +198,7 @@ async def forgot_password(body: ForgotPasswordBody):
 
     is_dev = os.environ.get("NODE_ENV", "development") != "production"
     resp: dict = {
-        "message": "Si el usuario existe, recibirá instrucciones de recuperación",
+        "message": "Si la cedula existe, recibira instrucciones de recuperacion",
         "email_enviado": email_enviado,
     }
     if is_dev:
@@ -209,14 +214,14 @@ class ResetPasswordBody(BaseModel):
 @router.post("/auth/reset-password")
 def reset_password(body: ResetPasswordBody):
     if not body.token or not body.nueva_password:
-        raise HTTPException(400, "Token y nueva contraseña son requeridos")
+        raise HTTPException(400, "Token y nueva contrasena son requeridos")
     if len(body.nueva_password) < 6:
-        raise HTTPException(400, "La contraseña debe tener al menos 6 caracteres")
+        raise HTTPException(400, "La contrasena debe tener al menos 6 caracteres")
 
     with get_db() as conn:
         perfil = fetchone(conn, "SELECT * FROM perfiles WHERE reset_token = %s", (body.token,))
         if not perfil:
-            raise HTTPException(400, "El código es inválido o ha expirado")
+            raise HTTPException(400, "El codigo es invalido o ha expirado")
 
         expiry = perfil.get("reset_token_expires_at")
         if expiry:
@@ -225,13 +230,13 @@ def reset_password(body: ResetPasswordBody):
             if expiry.tzinfo is None:
                 expiry = expiry.replace(tzinfo=timezone.utc)
             if expiry < datetime.now(timezone.utc):
-                raise HTTPException(400, "El código es inválido o ha expirado")
+                raise HTTPException(400, "El codigo es invalido o ha expirado")
 
         new_hash = hash_password(body.nueva_password)
         execute(conn, "UPDATE perfiles SET password_hash = %s, reset_token = NULL, reset_token_expires_at = NULL WHERE id = %s",
                 (new_hash, perfil["id"]))
 
-    return {"message": "Contraseña actualizada exitosamente"}
+    return {"message": "Contrasena actualizada exitosamente"}
 
 
 @router.post("/auth/logout")

@@ -1,4 +1,3 @@
-// Pagina de sesion de competencia: el estudiante entra con el link del docente y compite
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/contextos/AuthContext";
