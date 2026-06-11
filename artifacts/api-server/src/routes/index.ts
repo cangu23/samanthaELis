@@ -22,6 +22,11 @@ router.get("/healthz", (_req, res) => {
   res.json(data);
 });
 
+// Ruta raíz para verificar que la API está operativa
+router.get("/", (_req, res) => {
+  res.json({ message: "Bienvenido a la API de Cerebrito", version: "2026.1", status: "online" });
+});
+
 // Rutas de autenticacion: register, login, logout, me
 router.use(authRouter);
 
