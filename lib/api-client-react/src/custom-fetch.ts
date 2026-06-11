@@ -97,18 +97,16 @@ function getMediaType(headers: Headers): string | null {
 }
 
 function isJsonMediaType(mediaType: string | null): boolean {
-  const lower = mediaType?.toLowerCase().trim();
-  return lower === "application/json" || Boolean(lower?.endsWith("+json"));
+  return mediaType === "application/json" || Boolean(mediaType?.endsWith("+json"));
 }
 
 function isTextMediaType(mediaType: string | null): boolean {
-  return Boolean(
-    mediaType &&
-      (mediaType.startsWith("text/") ||
-        mediaType === "application/xml" ||
-        mediaType === "text/xml" ||
-        mediaType.endsWith("+xml") ||
-        mediaType === "application/x-www-form-urlencoded"),
+  if (!mediaType) return false;
+  return (
+    mediaType.startsWith("text/") ||
+    mediaType === "application/xml" ||
+    mediaType.endsWith("+xml") ||
+    mediaType === "application/x-www-form-urlencoded"
   );
 }
 
