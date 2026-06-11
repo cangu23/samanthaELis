@@ -222,7 +222,7 @@ router.post("/challenges/custom", requireAuth, requireDocente, async (req: AuthR
   try {
     const validation = createCustomChallengeSchema.safeParse(req.body);
     if (!validation.success) {
-      res.status(400).json({ error: "validation_error", message: "Datos de reto invalidos", details: validation.error.errors });
+      res.status(400).json({ error: "validation_error", message: "Datos de reto invalidos", details: validation.error.issues });
       return;
     }
 
@@ -232,10 +232,10 @@ router.post("/challenges/custom", requireAuth, requireDocente, async (req: AuthR
     const [nuevoReto] = await db
       .insert(retosPersonalizadosTable)
       .values({
-        id_docente: req.user!.id,
+        id_docente: req.user!.id as number,
         nombre,
         descripcion,
-        tipo_juego,
+        tipo_juego: tipo_juego as any,
         id_modulo: Number(id_modulo),
         id_nivel: Number(id_nivel),
         puntos_maximos: puntos_maximos || 100,

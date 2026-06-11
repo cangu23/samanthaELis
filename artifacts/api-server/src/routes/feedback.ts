@@ -22,7 +22,7 @@ router.post("/feedback", requireAuth, requireDocente, async (req: AuthRequest, r
     const validationResult = createFeedbackInputSchema.safeParse(req.body);
 
     if (!validationResult.success) {
-      res.status(400).json({ error: "validation_error", message: validationResult.error.errors.map(e => e.message).join(", ") });
+      res.status(400).json({ error: "validation_error", message: validationResult.error.issues.map((e: z.ZodIssue) => e.message).join(", ") });
       return;
     }
 
