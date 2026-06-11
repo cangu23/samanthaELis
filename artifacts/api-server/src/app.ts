@@ -7,8 +7,12 @@ import { logger } from "./lib/logger";
 const app: Express = express();
 
 app.use(cors({
-  // Permite la URL de tu frontend en Railway o usa '*' para permitir cualquiera (menos seguro pero efectivo para probar)
-  origin: [process.env.FRONTEND_URL || "*", "https://tu-proyecto.vercel.app"], 
+  // Permitimos el dominio de Vercel y local para pruebas
+  origin: [
+    process.env.FRONTEND_URL || "*", 
+    /\.vercel\.app$/, // Esto acepta cualquier subdominio de vercel.app de tu cuenta
+    "http://localhost:5173"
+  ],
   credentials: true
 }));
 
