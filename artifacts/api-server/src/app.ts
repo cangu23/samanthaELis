@@ -6,6 +6,12 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
+app.use(cors({
+  // Permite la URL de tu frontend en Railway o usa '*' para permitir cualquiera (menos seguro pero efectivo para probar)
+  origin: process.env.FRONTEND_URL || "*", 
+  credentials: true
+}));
+
 app.use(
   pinoHttp({
     logger,
