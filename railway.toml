@@ -1,6 +1,7 @@
 [build]
 builder = "RAILPACK"
 buildCommand = "pnpm install && pnpm run build"
+RAILPACK_INSTALL_CMD = "pnpm install --no-frozen-lockfile"
 
 [deploy]
 startCommand = "bash start.sh"
