@@ -32,7 +32,7 @@ router.post("/feedback", requireAuth, requireDocente, async (req: AuthRequest, r
     const [estudiante] = await db
       .select()
       .from(perfilesTable)
-      .where(and(eq(perfilesTable.id, Number(id_estudiante)), eq(perfilesTable.rol, "estudiante")));
+      .where(and(eq(perfilesTable.id, id_estudiante), eq(perfilesTable.rol, "estudiante")));
 
     if (!estudiante) {
       res.status(404).json({ error: "not_found", message: "Estudiante no encontrado" });
@@ -44,7 +44,7 @@ router.post("/feedback", requireAuth, requireDocente, async (req: AuthRequest, r
       .insert(feedbackDocenteTable)
       .values({
         id_docente: req.user!.id,
-        id_estudiante: Number(id_estudiante),
+        id_estudiante,
         contenido,
         tipo,
       })
