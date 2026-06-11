@@ -1,0 +1,11 @@
+[phases.setup]
+# Instalamos Node.js y pnpm automáticamente
+nixPkgs = ["nodejs", "nodePackages.pnpm"]
+
+[phases.install]
+# Instalamos todas las dependencias del monorepo
+cmds = ["pnpm install"]
+
+[start]
+# Indicamos que el comando de inicio es tu script de shell
+cmd = "bash start.sh"
