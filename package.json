@@ -15,7 +15,7 @@
   "private": true,
   "devDependencies": {
     "prettier": "^3.8.1",
-    "typescript": "^5.7.3"
+    "typescript": "5.7.3"
   },
   "dependencies": {
     "bcrypt": "catalog:"
@@ -105,7 +105,7 @@
       "@expo/ngrok-bin>@expo/ngrok-bin-win32-x64": "-",
       "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0",
       "esbuild": "0.27.7",
-      "zod": "^3.24.1"
+      "zod": "4.4.3"
     }
   }
 }
