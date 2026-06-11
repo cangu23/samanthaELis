@@ -38,6 +38,11 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Ruta raíz para evitar el error 404 en el panel de Render
+app.get("/", (_req, res) => {
+  res.send("<h1>🧠 Cerebrito API</h1><p>El servidor está funcionando correctamente. Para ver la aplicación visual, usa tu URL de Vercel.</p>");
+});
+
 app.use("/api", router);
 
 export default app;
