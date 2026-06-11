@@ -31,13 +31,16 @@ done
 
 MYSQL_ROOT="mysql --socket=$SOCKET -u root"
 
+# Usar la variable de entorno DB_PASSWORD o un valor por defecto seguro
+DB_PASS="${DB_PASSWORD:-proyectodegrado3}"
+
 # Set root password if not set (first run without password)
 if $MYSQL_ROOT --connect-expired-password -e "SELECT 1;" >/dev/null 2>&1; then
   echo "[startup] Setting root password..."
-  $MYSQL_ROOT --connect-expired-password -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'proyectodegrado3'; FLUSH PRIVILEGES;" 2>/dev/null || true
+  $MYSQL_ROOT --connect-expired-password -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$DB_PASS'; FLUSH PRIVILEGES;" 2>/dev/null || true
 fi
 
-MYSQL_AUTH="mysql --socket=$SOCKET -u root -pproyectodegrado3"
+MYSQL_AUTH="mysql --socket=$SOCKET -u root -p$DB_PASS"
 
 # Create database if not exists
 $MYSQL_AUTH -e "CREATE DATABASE IF NOT EXISTS cerebrito CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>/dev/null || true
@@ -63,7 +66,7 @@ fi
 export DB_HOST="127.0.0.1"
 export DB_PORT="3306"
 export DB_USER="root"
-export DB_PASSWORD="proyectodegrado3"
+export DB_PASSWORD="$DB_PASS"
 export DB_NAME="cerebrito"
 export MYSQL_SOCKET="$SOCKET"
 
