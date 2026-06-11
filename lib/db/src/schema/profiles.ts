@@ -21,6 +21,8 @@ export const perfilesTable = pgTable("perfiles", {
   id: serial("id").primaryKey(),
   // Nombre completo del usuario
   nombre: varchar("nombre", { length: 150 }).notNull(),
+  // Cédula de identidad
+  cedula: varchar("cedula", { length: 20 }).unique(),
   // Nombre de usuario para login - debe ser unico
   usuario: varchar("usuario", { length: 50 }).notNull().unique(),
   // Contrasena hasheada con bcrypt

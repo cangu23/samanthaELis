@@ -40,10 +40,10 @@ const router = Router();
 // POST /auth/register - Registrar un nuevo usuario (docente o estudiante)
 router.post("/auth/register", async (req, res) => {
   try {
-    const { nombre, usuario, password, rol, grado_bachillerato, email } = req.body;
+    const { nombre, usuario, password, rol, grado_bachillerato, email, cedula } = req.body;
 
     // Validaciones basicas
-    if (!nombre || !usuario || !password || !rol) {
+    if (!nombre || !usuario || !password || !rol || !cedula) {
       res.status(400).json({ error: "validation_error", message: "Todos los campos son requeridos" });
       return;
     }
@@ -82,6 +82,17 @@ router.post("/auth/register", async (req, res) => {
       return;
     }
 
+    // Verifica que la cedula no exista
+    const [cedulaExistente] = await db
+      .select({ id: perfilesTable.id })
+      .from(perfilesTable)
+      .where(eq(perfilesTable.cedula, cedula));
+
+    if (cedulaExistente) {
+      res.status(400).json({ error: "duplicate_cedula", message: "La cédula ya está registrada" });
+      return;
+    }
+
     // Hashea la contrasena con bcrypt (10 rounds)
     const password_hash = await bcrypt.hash(password, 10);
 
@@ -90,6 +101,7 @@ router.post("/auth/register", async (req, res) => {
       .insert(perfilesTable)
       .values({
         nombre,
+        cedula,
         usuario,
         password_hash,
         rol,
@@ -180,11 +192,11 @@ router.post("/auth/login", async (req, res) => {
 // POST /auth/forgot-password - Solicitar token de recuperacion de contrasena
 router.post("/auth/forgot-password", async (req, res) => {
   try {
-    const { usuario } = req.body;
-    if (!usuario) { res.status(400).json({ error: "validation_error", message: "Usuario requerido" }); return; }
-    const [perfil] = await db.select().from(perfilesTable).where(eq(perfilesTable.usuario, usuario));
+    const { cedula } = req.body;
+    if (!cedula) { res.status(400).json({ error: "validation_error", message: "Cédula requerida" }); return; }
+    const [perfil] = await db.select().from(perfilesTable).where(eq(perfilesTable.cedula, cedula));
     if (!perfil) {
-      res.json({ message: "Si el usuario existe, recibirá instrucciones de recuperación" });
+      res.json({ message: "Si la cédula existe, recibirá instrucciones de recuperación" });
       return;
     }
     const token = generarToken6();

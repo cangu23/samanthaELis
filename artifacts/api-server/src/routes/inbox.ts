@@ -191,22 +191,19 @@ router.get("/inbox/feedback", requireAuth, async (req: AuthRequest, res) => {
       .orderBy(desc(feedbackDocenteTable.creado_en));
 
     // Normaliza: usa 'mensaje' en lugar de 'contenido' para el frontend
-    const feedbackNormalizado = await Promise.all(
-      feedback.map(async (f) => {
-        const [docente] = await db
-          .select({ nombre: perfilesTable.nombre })
-          .from(perfilesTable)
-          .where(eq(perfilesTable.id, f.id_docente));
-        return {
-          id: f.id,
-          mensaje: f.contenido,
-          respuesta: null,
-          leido: f.leido,
-          fecha_creacion: f.creado_en,
-          docente_nombre: docente?.nombre || "Docente",
-        };
+    // Sugerencia: Usa un JOIN para obtener el nombre del docente en una sola consulta
+    const feedbackNormalizado = await db
+      .select({
+        id: feedbackDocenteTable.id,
+        mensaje: feedbackDocenteTable.contenido,
+        leido: feedbackDocenteTable.leido,
+        fecha_creacion: feedbackDocenteTable.creado_en,
+        docente_nombre: perfilesTable.nombre,
       })
-    );
+      .from(feedbackDocenteTable)
+      .leftJoin(perfilesTable, eq(feedbackDocenteTable.id_docente, perfilesTable.id))
+      .where(eq(feedbackDocenteTable.id_estudiante, req.user!.id))
+      .orderBy(desc(feedbackDocenteTable.creado_en));
 
     res.json(feedbackNormalizado);
   } catch (err) {
