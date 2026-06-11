@@ -97,7 +97,8 @@ function getMediaType(headers: Headers): string | null {
 }
 
 function isJsonMediaType(mediaType: string | null): boolean {
-  return mediaType === "application/json" || Boolean(mediaType?.endsWith("+json"));
+  const lower = mediaType?.toLowerCase().trim();
+  return lower === "application/json" || Boolean(lower?.endsWith("+json"));
 }
 
 function isTextMediaType(mediaType: string | null): boolean {
