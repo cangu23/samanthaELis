@@ -2,11 +2,15 @@
 # Script de inicio para Railway
 set -e
 
+# Instalación de dependencias si no existen (útil en entornos efímeros)
+pnpm install --no-frozen-lockfile
+
 if [ "$SERVICE_TYPE" = "FRONTEND" ]; then
   echo "🚀 Iniciando Frontend (InfoQuest)..."
-  # Ejecuta el preview de Vite en el puerto que asigne Railway
-  pnpm --filter ./artifacts/infoquest run preview -- --host 0.0.0.0 --port ${PORT:-8080}
+  pnpm --filter ./artifacts/infoquest run build && pnpm --filter ./artifacts/infoquest run preview -- --host 0.0.0.0 --port ${PORT:-8080}
 else
   echo "🧠 Iniciando Backend (API Server)..."
-  PORT=${PORT:-8080} pnpm --filter ./artifacts/api-server run start
+  # Aseguramos que se construya el servidor y las librerías compartidas
+  pnpm --filter @workspace/api-server run build
+  PORT=${PORT:-8080} pnpm --filter @workspace/api-server run start
 fi
