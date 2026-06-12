@@ -150,3 +150,7 @@ onlyBuiltDependencies:
   - bcrypt
   - msw
   - unrs-resolver
+
+allowBuilds:
+  bcrypt: true
+  esbuild: true
