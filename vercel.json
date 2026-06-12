@@ -1,9 +1,15 @@
 {
   "version": 2,
+  "buildCommand": "pnpm --filter infoquest build",
+  "outputDirectory": "artifacts/infoquest/dist",
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://samanthaelis.onrender.com/api/:path*"
+    },
+    {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/artifacts/infoquest/index.html"
     }
   ]
 }

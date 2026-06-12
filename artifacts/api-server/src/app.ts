@@ -6,12 +6,24 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
+// Configuración de CORS
 app.use(cors({
-  origin: [
-    ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
-    /\.vercel\.app$/,
-    "http://localhost:5173"
-  ],
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      "http://localhost:5173",
+      "http://localhost:3000"
+    ].filter(Boolean) as string[];
+
+    // Permite el origen si está en la lista o si viene de un despliegue de Vercel
+    if (!origin || allowedOrigins.includes(origin) || origin.match(/vercel\.app$/)) {
+      callback(null, true);
+    } else {
+      callback(new Error("No permitido por CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
