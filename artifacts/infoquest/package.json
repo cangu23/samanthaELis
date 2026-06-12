@@ -9,6 +9,9 @@
     "serve": "vite preview --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
+  "dependencies": {
+    "@react-oauth/google": "^1.2.0"
+  },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.4",
@@ -60,7 +63,6 @@
     "input-otp": "^1.4.2",
     "lightningcss-win32-x64-msvc": "^1.32.0",
     "lucide-react": "catalog:",
-    "react-oauth/google": "^1.2.0",
     "next-themes": "^0.4.6",
     "react": "catalog:",
     "react-day-picker": "^9.11.1",
