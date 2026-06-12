@@ -9,7 +9,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/artifacts/infoquest/index.html"
+      "destination": "/index.html"
     }
   ]
 }
