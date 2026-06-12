@@ -16,7 +16,7 @@ app.use(cors({
     ].filter(Boolean) as string[];
 
     // Permite el origen si está en la lista o si viene de un despliegue de Vercel
-    if (!origin || allowedOrigins.includes(origin) || origin.match(/vercel\.app$/)) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
       callback(null, true);
     } else {
       callback(new Error("No permitido por CORS"));

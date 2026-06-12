@@ -20,7 +20,7 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname),
   build: {
-    outDir: "dist", // Esto es correcto, asegura que el index.html termine en la raíz de /dist
+    outDir: "dist",
     emptyOutDir: true,
   },
   server: {
