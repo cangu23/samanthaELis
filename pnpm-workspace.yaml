@@ -25,7 +25,7 @@
 #     - typescript
 #
 # ============================================================================
-minimumReleaseAge: 1440
+minimumReleaseAge: 0
 
 minimumReleaseAgeExclude:
   # Exclude @replit scoped packages from the minimum release age check.
@@ -33,6 +33,8 @@ minimumReleaseAgeExclude:
   # this setting guards against does not apply to our own packages.
   - '@replit/*'
   - stripe-replit-sync
+  - typescript
+  - zod
 
 packages:
   - artifacts/*
