@@ -81,7 +81,7 @@ router.post("/auth/register", async (req, res) => {
       .where(eq(perfilesTable.usuario, usuario));
 
     if (existente) {
-      res.status(400).json({ error: "duplicate_user", message: "El nombre de usuario ya esta en uso" });
+      res.status(400).json({ error: "duplicate_user", message: "El nombre de usuario ya está en uso" });
       return;
     }
 
@@ -158,13 +158,14 @@ router.post("/auth/google", async (req, res) => {
       if (!perfil) {
         [perfil] = await db.insert(perfilesTable).values({
           nombre: name || "Usuario Google",
+          cedula: `G-${googleId.substring(0, 10)}`, // Agregamos una cédula temporal basada en Google ID para evitar error de NOT NULL
           usuario: `google_${googleId.substring(0, 8)}`,
           email: email || null,
           google_id: googleId,
           avatar_url: picture || null,
           rol: "estudiante", // Por defecto
           password_hash: "google_authenticated", // No se usa para Google, pero el campo es NOT NULL
-          grado_bachillerato: 1,
+          grado_bachillerato: 1, // Por defecto para nuevos usuarios de Google
         }).returning();
       }
     }
@@ -176,9 +177,9 @@ router.post("/auth/google", async (req, res) => {
     const { password_hash: _, ...perfilPublico } = perfil;
     
     res.json({ user: perfilPublico, token });
-  } catch (err) {
+  } catch (err: any) {
     req.log.error({ err }, "Error en Google login");
-    res.status(500).json({ error: "server_error", message: "Error al autenticar con Google" });
+    res.status(500).json({ error: "server_error", message: err.message || "Error al autenticar con Google" });
   }
 });
 
@@ -243,9 +244,9 @@ router.post("/auth/login", async (req, res) => {
     // Retorna el usuario sin la contrasena (con racha actualizada)
     const { password_hash: _, ...perfilPublico } = perfil;
     res.json({ user: { ...perfilPublico, racha_dias: nuevaRacha }, token });
-  } catch (err) {
+  } catch (err: any) {
     req.log.error({ err }, "Error en login");
-    res.status(500).json({ error: "server_error", message: "Error interno del servidor" });
+    res.status(500).json({ error: "server_error", message: err.message || "Error interno del servidor" });
   }
 });
 
