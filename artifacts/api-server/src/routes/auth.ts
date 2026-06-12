@@ -43,7 +43,7 @@ const router = Router();
 // POST /auth/register - Registrar un nuevo usuario (docente o estudiante)
 router.post("/auth/register", async (req, res) => {
   try {
-    const { nombre, usuario, password, rol, grado_bachillerato, email, cedula } = req.body;
+    const { nombre, usuario, password, rol, grado_bachillerato, email, cedula, codigo_docente } = req.body;
 
     // Validaciones basicas
     if (!nombre || !usuario || !password || !rol || !cedula) {
@@ -52,9 +52,8 @@ router.post("/auth/register", async (req, res) => {
     }
 
     if (rol === "docente") {
-      const codigoIngresado = req.body.codigo_docente;
-      const codigoCorrecto = process.env.DOCENTE_CODE;
-      if (!codigoCorrecto || codigoIngresado !== codigoCorrecto) {
+      const codigoCorrecto = process.env.DOCENTE_CODE || "CUMBAYA2025";
+      if (!codigo_docente || codigo_docente.trim() !== codigoCorrecto) {
         res.status(403).json({ error: "codigo_invalido", message: "El código de docente es incorrecto" });
         return;
       }
@@ -75,23 +74,23 @@ router.post("/auth/register", async (req, res) => {
     }
 
     // Verifica que el nombre de usuario no exista
-    const [existente] = await db
+    const perfilesExistentes = await db
       .select({ id: perfilesTable.id })
       .from(perfilesTable)
       .where(eq(perfilesTable.usuario, usuario));
 
-    if (existente) {
+    if (perfilesExistentes.length > 0) {
       res.status(400).json({ error: "duplicate_user", message: "El nombre de usuario ya está en uso" });
       return;
     }
 
     // Verifica que la cedula no exista
-    const [cedulaExistente] = await db
+    const cedulasExistentes = await db
       .select({ id: perfilesTable.id })
       .from(perfilesTable)
       .where(eq(perfilesTable.cedula, cedula));
 
-    if (cedulaExistente) {
+    if (cedulasExistentes.length > 0) {
       res.status(400).json({ error: "duplicate_cedula", message: "La cédula ya está registrada" });
       return;
     }
