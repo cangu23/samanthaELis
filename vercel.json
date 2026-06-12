@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "pnpm --filter infoquest build",
+  "buildCommand": "pnpm --filter \"./artifacts/infoquest\" build",
   "outputDirectory": "artifacts/infoquest/dist",
   "rewrites": [
     {
