@@ -119,9 +119,12 @@ router.post("/auth/register", async (req, res) => {
     // Retorna el usuario sin la contrasena
     const { password_hash: _, ...perfil } = nuevo;
     res.status(201).json({ user: perfil, token });
-  } catch (err) {
-    req.log.error({ err }, "Error en registro");
-    res.status(500).json({ error: "server_error", message: "Error interno del servidor" });
+  } catch (err: any) {
+    req.log.error({ err }, "Register error");
+    res.status(500).json({ 
+      error: "server_error", 
+      message: err.message 
+    });
   }
 });
 
@@ -178,8 +181,11 @@ router.post("/auth/google", async (req, res) => {
     
     res.json({ user: perfilPublico, token });
   } catch (err: any) {
-    req.log.error({ err }, "Error en Google login");
-    res.status(500).json({ error: "server_error", message: err.message || "Error al autenticar con Google" });
+    req.log.error({ err }, "Google login error");
+    res.status(500).json({ 
+      error: "server_error", 
+      message: err.message 
+    });
   }
 });
 
@@ -245,8 +251,11 @@ router.post("/auth/login", async (req, res) => {
     const { password_hash: _, ...perfilPublico } = perfil;
     res.json({ user: { ...perfilPublico, racha_dias: nuevaRacha }, token });
   } catch (err: any) {
-    req.log.error({ err }, "Error en login");
-    res.status(500).json({ error: "server_error", message: err.message || "Error interno del servidor" });
+    req.log.error({ err }, "Login error");
+    res.status(500).json({ 
+      error: "server_error", 
+      message: err.message 
+    });
   }
 });
 
