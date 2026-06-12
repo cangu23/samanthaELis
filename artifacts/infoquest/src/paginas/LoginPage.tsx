@@ -6,7 +6,7 @@ import { Input } from "@/componentes/interfaz/input";
 import { Label } from "@/componentes/interfaz/label";
 import { Alert, AlertDescription } from "@/componentes/interfaz/alert";
 import { RobotMascot } from "@/componentes/mascota/RobotMascot";
-import { GoogleLoginButton } from "@/componentes/auth/GoogleLoginButton";
+import { GoogleLoginButton } from "@/contextos/GoogleLoginButton";
 import { Zap, Eye, EyeOff, AlertCircle, LogIn } from "lucide-react";
 
 export function LoginPage() {
