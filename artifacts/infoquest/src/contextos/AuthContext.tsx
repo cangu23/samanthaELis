@@ -2,6 +2,7 @@
 // Provee funciones de login, logout y registro al resto de la aplicacion
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 // Tipo del perfil de usuario
 interface Profile {
@@ -27,6 +28,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (usuario: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => void;
   register: (data: {
     nombre: string;
@@ -106,6 +108,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   };
 
+  // Inicia sesión con Google usando el token recibido del SDK
+  const loginWithGoogle = async (credential: string) => {
+    const response = await fetch("/api/auth/google", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.message || "Error al autenticar con Google");
+    }
+
+    const data = await response.json();
+    localStorage.setItem("cerebrito_token", data.token);
+    setAuthTokenGetter(() => data.token);
+    setToken(data.token);
+    setUser(data.user);
+  };
+
   // Registra un nuevo usuario y lo autentica automaticamente
   const register = async (userData: {
     nombre: string;
@@ -144,20 +166,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        isAuthenticated: !!user,
-        login,
-        logout,
-        register,
-        setUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <GoogleOAuthProvider clientId="425308249577-6teuopj1f1buat3031mqm9e0re3lmbvg.apps.googleusercontent.com">
+      <AuthContext.Provider
+        value={{
+          user,
+          token,
+          isLoading,
+          isAuthenticated: !!user,
+          login,
+          loginWithGoogle,
+          logout,
+          register,
+          setUser,
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    </GoogleOAuthProvider>
   );
 }
 

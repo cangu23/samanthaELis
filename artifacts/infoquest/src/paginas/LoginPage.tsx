@@ -6,6 +6,7 @@ import { Input } from "@/componentes/interfaz/input";
 import { Label } from "@/componentes/interfaz/label";
 import { Alert, AlertDescription } from "@/componentes/interfaz/alert";
 import { RobotMascot } from "@/componentes/mascota/RobotMascot";
+import { GoogleLoginButton } from "@/componentes/auth/GoogleLoginButton";
 import { Zap, Eye, EyeOff, AlertCircle, LogIn } from "lucide-react";
 
 export function LoginPage() {
@@ -124,6 +125,17 @@ export function LoginPage() {
               )}
             </Button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">O continúa con</span>
+            </div>
+          </div>
+
+          <GoogleLoginButton />
 
           <div className="mt-3 text-center">
             <Link href="/forgot-password">

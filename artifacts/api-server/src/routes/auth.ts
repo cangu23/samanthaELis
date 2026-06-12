@@ -6,6 +6,9 @@ import nodemailer from "nodemailer";
 import { db } from "@workspace/db";
 import { perfilesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { OAuth2Client } from "google-auth-library";
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 import { generarToken, requireAuth, type AuthRequest } from "../lib/auth";
 
 function generarToken6(): string {
@@ -119,6 +122,63 @@ router.post("/auth/register", async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Error en registro");
     res.status(500).json({ error: "server_error", message: "Error interno del servidor" });
+  }
+});
+
+// POST /auth/google - Iniciar sesión o registrarse con Google
+router.post("/auth/google", async (req, res) => {
+  try {
+    const { credential } = req.body;
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload) throw new Error("Invalid google token");
+
+    const { sub: googleId, email, name, picture } = payload;
+
+    // 1. Buscar si ya existe por google_id
+    let [perfil] = await db
+      .select()
+      .from(perfilesTable)
+      .where(eq(perfilesTable.google_id, googleId));
+
+    // 2. Si no existe, crear uno nuevo (por defecto estudiante)
+    if (!perfil) {
+      // Verificar si el email ya existe en una cuenta local
+      if (email) {
+        const [existente] = await db.select().from(perfilesTable).where(eq(perfilesTable.email, email));
+        if (existente) {
+          // Vincular cuenta existente
+          [perfil] = await db.update(perfilesTable).set({ google_id: googleId }).where(eq(perfilesTable.id, existente.id)).returning();
+        }
+      }
+
+      if (!perfil) {
+        [perfil] = await db.insert(perfilesTable).values({
+          nombre: name || "Usuario Google",
+          usuario: `google_${googleId.substring(0, 8)}`,
+          email: email || null,
+          google_id: googleId,
+          avatar_url: picture || null,
+          rol: "estudiante", // Por defecto
+          password_hash: "google_authenticated", // No se usa para Google, pero el campo es NOT NULL
+          grado_bachillerato: 1,
+        }).returning();
+      }
+    }
+
+    // Actualizar racha y último acceso (copiar lógica de login normal si se desea)
+    await db.update(perfilesTable).set({ ultimo_acceso: new Date() }).where(eq(perfilesTable.id, perfil.id));
+
+    const token = generarToken({ userId: perfil.id, usuario: perfil.usuario, rol: perfil.rol });
+    const { password_hash: _, ...perfilPublico } = perfil;
+    
+    res.json({ user: perfilPublico, token });
+  } catch (err) {
+    req.log.error({ err }, "Error en Google login");
+    res.status(500).json({ error: "server_error", message: "Error al autenticar con Google" });
   }
 });
 
