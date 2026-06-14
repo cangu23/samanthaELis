@@ -52,8 +52,11 @@ router.post("/auth/register", async (req, res) => {
     }
 
     if (rol === "docente") {
-      const codigoCorrecto = process.env.DOCENTE_CODE || "CUMBAYA2025";
-      if (!codigo_docente || codigo_docente.trim().toUpperCase() !== codigoCorrecto.toUpperCase()) {
+      // Normalizamos el código de env y el código enviado para evitar fallos por espacios o capitalización
+      const codigoCorrecto = (process.env.DOCENTE_CODE || "CUMBAYA2025").trim().toUpperCase();
+      const codigoEnviado = (codigo_docente || "").toString().trim().toUpperCase();
+
+      if (!codigoEnviado || codigoEnviado !== codigoCorrecto) {
         res.status(403).json({ error: "codigo_invalido", message: "El código de docente es incorrecto" });
         return;
       }

@@ -10,7 +10,7 @@ from auth_utils import crear_token, get_current_user
 
 router = APIRouter()
 
-DOCENTE_CODE = os.environ.get("DOCENTE_CODE", "CUMBAYA2025")
+DOCENTE_CODE = os.environ.get("DOCENTE_CODE", "CUMBAYA2025").strip().upper()
 
 CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
@@ -87,7 +87,8 @@ def register(body: RegisterBody):
         raise HTTPException(400, "Todos los campos son requeridos")
 
     if body.rol == "docente":
-        if not DOCENTE_CODE or (body.codigo_docente or "").strip().upper() != DOCENTE_CODE.upper():
+        codigo_enviado = (body.codigo_docente or "").strip().upper()
+        if not DOCENTE_CODE or codigo_enviado != DOCENTE_CODE:
             raise HTTPException(403, "El codigo de docente es incorrecto")
     elif body.rol != "estudiante":
         raise HTTPException(403, "Rol no permitido")

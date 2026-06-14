@@ -23,12 +23,13 @@ interface PreguntaQuiz {
 }
 interface PalabraSopa { palabra: string; pista: string; }
 interface PalabraCrucigrama { palabra: string; pista: string; }
-type TipoJuego = "quiz" | "code_challenge" | "security_puzzle" | "speed_race" | "word_search" | "crossword";
+type TipoJuego = "quiz" | "code_challenge" | "security_puzzle" | "drag_drop" | "speed_race" | "word_search" | "crossword";
 
 const TIPOS_JUEGO: { value: TipoJuego; label: string; icon: React.ElementType; descripcion: string }[] = [
   { value: "quiz",             label: "Quiz",                icon: BookOpen,  descripcion: "Preguntas de opcion multiple o verdadero/falso" },
   { value: "code_challenge",   label: "Desafio de Codigo",   icon: Code2,     descripcion: "Completar o analizar fragmentos de codigo" },
   { value: "security_puzzle",  label: "Puzzle de Seguridad", icon: Shield,    descripcion: "Preguntas sobre ciberseguridad" },
+  { value: "drag_drop",        label: "Ordenar Pasos",       icon: Zap,       descripcion: "Arrastra y suelta para ordenar algoritmos" },
   { value: "speed_race",       label: "Carrera Rapida",      icon: ZapIcon,   descripcion: "Preguntas rapidas contra el tiempo" },
   { value: "word_search",      label: "Sopa de Letras",      icon: Search,    descripcion: "Palabras que los estudiantes deben encontrar" },
   { value: "crossword",        label: "Crucigrama",          icon: Grid3x3,   descripcion: "Palabras con pistas para completar" },
@@ -79,7 +80,7 @@ export function CreateChallengePage() {
   const [copiado, setCopiado] = useState(false);
   const [borradorGuardado, setBorradorGuardado] = useState(false); // ✅ indicador visual
 
-  const esJuegoConPreguntas = ["quiz", "code_challenge", "security_puzzle", "speed_race"].includes(tipoJuego);
+  const esJuegoConPreguntas = ["quiz", "code_challenge", "security_puzzle", "drag_drop", "speed_race"].includes(tipoJuego);
   const esSopa = tipoJuego === "word_search";
   const esCrucigrama = tipoJuego === "crossword";
 
