@@ -10,6 +10,16 @@ out-tsc
 
 # dependencies
 node_modules
+pnpm-debug.log*
+
+# Python (Backends/Scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+instance/
 
 # IDEs and editors
 /.idea
@@ -47,5 +57,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
-node_modules/
-.env
+
+# Environment files (Local development)
+.env*
+!.env.example
