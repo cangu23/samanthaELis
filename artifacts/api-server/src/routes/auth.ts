@@ -44,6 +44,7 @@ const router = Router();
 router.post("/auth/register", async (req, res) => {
   try {
     const { nombre, usuario, password, rol, grado_bachillerato, email, cedula, codigo_docente } = req.body;
+    console.log(`Intentando registro para usuario: ${usuario}, rol: ${rol}`);
 
     // Validaciones basicas
     if (!nombre || !usuario || !password || !rol || !cedula) {
@@ -55,6 +56,8 @@ router.post("/auth/register", async (req, res) => {
       // Normalizamos el código de env y el código enviado para evitar fallos por espacios o capitalización
       const codigoCorrecto = (process.env.DOCENTE_CODE || "CUMBAYA2025").trim().toUpperCase();
       const codigoEnviado = (codigo_docente || "").toString().trim().toUpperCase();
+
+      console.log(`Validando código docente. Enviado: "${codigoEnviado}", Esperado: "${codigoCorrecto}"`);
 
       if (!codigoEnviado || codigoEnviado !== codigoCorrecto) {
         res.status(403).json({ error: "codigo_invalido", message: "El código de docente es incorrecto" });
