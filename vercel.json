@@ -1,8 +1,8 @@
 {
   "version": 2,
   "framework": "vite",
-  "buildCommand": "pnpm --filter artifacts/infoquest build",
-  "outputDirectory": "artifacts/infoquest/dist",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
