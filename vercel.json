@@ -1,11 +1,12 @@
 {
   "version": 2,
+  "framework": "vite",
   "buildCommand": "pnpm --filter artifacts/infoquest build",
   "outputDirectory": "artifacts/infoquest/dist",
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://samanthaelis.onrender.com/api/:path*"
+      "source": "/api/(.*)",
+      "destination": "https://samanthaelis.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",
