@@ -166,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <GoogleOAuthProvider clientId="425308249577-6teuopj1f1buat3031mqm9e0re3lmbvg.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <AuthContext.Provider
         value={{
           user,
