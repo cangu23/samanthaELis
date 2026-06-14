@@ -87,7 +87,7 @@ def register(body: RegisterBody):
         raise HTTPException(400, "Todos los campos son requeridos")
 
     if body.rol == "docente":
-        if not DOCENTE_CODE or body.codigo_docente != DOCENTE_CODE:
+        if not DOCENTE_CODE or (body.codigo_docente or "").strip().upper() != DOCENTE_CODE.upper():
             raise HTTPException(403, "El codigo de docente es incorrecto")
     elif body.rol != "estudiante":
         raise HTTPException(403, "Rol no permitido")

@@ -53,7 +53,7 @@ router.post("/auth/register", async (req, res) => {
 
     if (rol === "docente") {
       const codigoCorrecto = process.env.DOCENTE_CODE || "CUMBAYA2025";
-      if (!codigo_docente || codigo_docente.trim() !== codigoCorrecto) {
+      if (!codigo_docente || codigo_docente.trim().toUpperCase() !== codigoCorrecto.toUpperCase()) {
         res.status(403).json({ error: "codigo_invalido", message: "El código de docente es incorrecto" });
         return;
       }
