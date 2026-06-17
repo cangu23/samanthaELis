@@ -9,7 +9,7 @@
   "scripts": {
     "start": "bash start.sh",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
-    "db:seed:demos": "pnpm dlx tsx scripts/seed-demos.ts",
+    "db:seed:demos": "pnpm dlx tsx artifacts/infoquest/src/paginas/seed-demos.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck:libs": "tsc --build",

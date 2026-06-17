@@ -87,7 +87,7 @@ async function seed() {
       await db.insert(preguntasTable).values({
         id_reto: reto.id,
         texto: p.q,
-        tipo: "multiple",
+        tipo: "multiple_choice",
         opciones: p.opts,
         respuesta_correcta: p.a,
         puntos: 10,

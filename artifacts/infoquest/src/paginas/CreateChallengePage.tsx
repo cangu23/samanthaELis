@@ -36,9 +36,9 @@ const TIPOS_JUEGO: { value: TipoJuego; label: string; icon: React.ElementType; d
 ];
 
 const tipoMap: Record<string, string> = {
-  "multiple_choice": "multiple",
-  "true_false": "verdadero_falso",
-  "code_completion": "completar",
+  "multiple_choice": "multiple_choice",
+  "true_false": "true_false",
+  "code_completion": "code_completion",
 };
 
 const selectCls =
@@ -202,7 +202,7 @@ export function CreateChallengePage() {
           numero_preguntas: preguntasFinales.length,
           preguntas: preguntasFinales.map((p) => ({
             ...p,
-            tipo: tipoMap[p.tipo] || "multiple",
+            tipo: tipoMap[p.tipo] || "multiple_choice",
             dificultad: "medio",
             opciones: p.opciones.filter((o) => o.trim()),
           })),

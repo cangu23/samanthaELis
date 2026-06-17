@@ -31,9 +31,7 @@ router.post("/results", requireAuth, async (req: AuthRequest, res) => {
     const precision_val = respuestas_correctas / Math.max(total_preguntas, 1);
     const tiempo_total_val = body.tiempo_empleado || body.tiempo_total || 0;
     const completado = body.completado !== false;
-    const detalles = body.respuestas
-      ? JSON.stringify(body.respuestas)
-      : body.detalles || null;
+    const detalles = body.respuestas ? body.respuestas : body.detalles || null;
 
     if (!id_reto) {
       res
@@ -42,55 +40,53 @@ router.post("/results", requireAuth, async (req: AuthRequest, res) => {
       return;
     }
 
-    // Registra el resultado en la base de datos
-    const [resultado] = await db
-      .insert(resultadosTable)
-      .values({
-        id_usuario: req.user!.id,
-        id_reto: Number(id_reto),
-        is_custom: is_custom,
-        puntuacion: Number(puntuacion),
-        puntos_maximos: Number(puntos_maximos_val),
-        precision: precision_val,
-        tiempo_total: Number(tiempo_total_val),
-        detalles: detalles,
-        completado: completado,
-        tiempo_respuesta: 0,
-        respuestas_correctas: Number(respuestas_correctas),
-        respuestas_incorrectas: Number(respuestas_incorrectas),
-      })
-      .returning();
-
-    // Actualiza los puntos totales y retos completados del usuario
-    if (completado) {
-      await db
-        .update(perfilesTable)
-        .set({
-          puntos_totales: sql`${perfilesTable.puntos_totales} + ${Number(puntuacion)}`,
-          retos_completados: sql`${perfilesTable.retos_completados} + 1`,
+    // Usar transacción para asegurar la integridad de los datos
+    const resultadoFinal = await db.transaction(async (tx) => {
+      const [resultado] = await tx
+        .insert(resultadosTable)
+        .values({
+          id_usuario: req.user!.id,
+          id_reto: Number(id_reto),
+          is_custom: is_custom,
+          puntuacion: Number(puntuacion),
+          puntos_maximos: Number(puntos_maximos_val),
+          precision: precision_val,
+          tiempo_total: Number(tiempo_total_val),
+          detalles: detalles,
+          completado: completado,
+          tiempo_respuesta: 0,
+          respuestas_correctas: Number(respuestas_correctas),
+          respuestas_incorrectas: Number(respuestas_incorrectas),
         })
-        .where(eq(perfilesTable.id, req.user!.id));
-    }
+        .returning();
 
-    // Si la precision es menor al 50%, genera una alerta de bajo rendimiento
-    if (precision_val < 0.5 && completado) {
-      await db.insert(alertasTable).values({
-        id_usuario: req.user!.id,
-        descripcion: `Tu precision en el ultimo reto fue del ${Math.round(precision_val * 100)}%. Te recomendamos repasar los temas del modulo.`,
-        tipo: "bajo_rendimiento",
-      });
-    }
+      if (completado) {
+        await tx
+          .update(perfilesTable)
+          .set({
+            puntos_totales: sql`${perfilesTable.puntos_totales} + ${Number(puntuacion)}`,
+            retos_completados: sql`${perfilesTable.retos_completados} + 1`,
+          })
+          .where(eq(perfilesTable.id, req.user!.id));
 
-    // Si completo el reto con mas del 80% de precision, genera un logro
-    if (precision_val >= 0.8 && completado) {
-      await db.insert(alertasTable).values({
-        id_usuario: req.user!.id,
-        descripcion: `Excelente! Completaste el reto con ${Math.round(precision_val * 100)}% de precision. Sigue adelante!`,
-        tipo: "logro",
-      });
-    }
+        if (precision_val < 0.5) {
+          await tx.insert(alertasTable).values({
+            id_usuario: req.user!.id,
+            descripcion: `Tu precision fue del ${Math.round(precision_val * 100)}%. ¡Puedes mejorar!`,
+            tipo: "bajo_rendimiento",
+          });
+        } else if (precision_val >= 0.8) {
+          await tx.insert(alertasTable).values({
+            id_usuario: req.user!.id,
+            descripcion: `¡Excelente! ${Math.round(precision_val * 100)}% de precisión lograda.`,
+            tipo: "logro",
+          });
+        }
+      }
+      return resultado;
+    });
 
-    res.status(201).json(resultado);
+    res.status(201).json(resultadoFinal);
   } catch (err) {
     req.log.error({ err }, "Error al registrar resultado");
     res.status(500).json({ error: "server_error", message: "Error interno" });
@@ -100,28 +96,17 @@ router.post("/results", requireAuth, async (req: AuthRequest, res) => {
 // GET /results/my - Obtener los resultados del usuario actual
 router.get("/results/my", requireAuth, async (req: AuthRequest, res) => {
   try {
-    const resultados = await db
-      .select()
+    const resultadosConReto = await db
+      .select({
+        resultado: resultadosTable,
+        reto: retosTable
+      })
       .from(resultadosTable)
+      .leftJoin(retosTable, eq(resultadosTable.id_reto, retosTable.id))
       .where(eq(resultadosTable.id_usuario, req.user!.id))
       .orderBy(desc(resultadosTable.fecha));
 
-    // Agrega informacion del reto a cada resultado
-    const resultadosConInfo = await Promise.all(
-      resultados.map(async (r) => {
-        let reto = null;
-        if (!r.is_custom) {
-          const [retoData] = await db
-            .select()
-            .from(retosTable)
-            .where(eq(retosTable.id, r.id_reto));
-          reto = retoData || null;
-        }
-        return { ...r, reto };
-      }),
-    );
-
-    res.json(resultadosConInfo);
+    res.json(resultadosConReto.map(r => ({ ...r.resultado, reto: r.reto })));
   } catch (err) {
     req.log.error({ err }, "Error al obtener resultados");
     res.status(500).json({ error: "server_error", message: "Error interno" });

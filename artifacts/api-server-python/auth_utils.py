@@ -6,6 +6,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from db import get_db, fetchone
 
 JWT_SECRET = os.environ.get("SESSION_SECRET", "cerebrito_secret_2024")
+JWT_SECRET = os.environ.get("SESSION_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError("SESSION_SECRET no configurada en las variables de entorno")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_DAYS = 7
 
